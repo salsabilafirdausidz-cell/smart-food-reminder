@@ -1,8 +1,6 @@
 // Smart Food Reminder — Service Worker
-const CACHE_NAME = 'sfr-v1';
+const CACHE_NAME = 'sfr-v2'; // bump versi ini setiap kali deploy perubahan penting
 const ASSETS = [
-  './',
-  './index.html',
   './manifest.json',
   './icons/logo.svg',
   './icons/icon-72.png',
@@ -11,7 +9,7 @@ const ASSETS = [
   './icons/maskable-512.png',
 ];
 
-// Install: pre-cache app shell
+// Install: pre-cache aset statis (bukan index.html — itu selalu diambil fresh)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -20,7 +18,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate: clean old caches
+// Activate: hapus semua cache versi lama & langsung ambil alih tab yang terbuka
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -29,27 +27,42 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch: cache-first, network fallback; navigations fall back to index.html
+// Fetch:
+// - HTML (navigasi ke halaman) → NETWORK-FIRST. Selalu coba ambil versi
+//   terbaru dari server dulu; cache cuma jadi cadangan kalau offline.
+//   Ini yang mencegah user "kejebak" versi lama setelah kita update kode.
+// - Aset statis (icon dll) → cache-first, karena jarang berubah & biar cepat.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const isNavigation = event.request.mode === 'navigate' ||
+    event.request.headers.get('accept')?.includes('text/html');
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
-          // Cache successful same-origin responses
           if (response.ok && event.request.url.startsWith(self.location.origin)) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return response;
         })
-        .catch(() => {
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
-          }
-        });
+        .catch(() => {});
     })
   );
 });
