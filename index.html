@@ -1,0 +1,3373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Smart Food Reminder</title>
+<meta name="description" content="Kelola dapur tanpa mubazir — pengingat kadaluarsa & rekomendasi resep.">
+<meta name="theme-color" content="#1A6B3C">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SmartFood">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-900:#0D3D22;
+    --green-800:#134E2C;
+    --green-700:#1A6B3C;
+    --green-600:#2E9E5B;
+    --green-100:#E8F5EE;
+    --green-50:#F1F9F4;
+    --amber:#F4A61D;
+    --amber-light:#FFF3D6;
+    --red:#E53935;
+    --red-light:#FFE8E7;
+    --orange:#FB8C00;
+    --orange-light:#FFF0DC;
+    --yellow:#FFC107;
+    --gray-900:#0F172A;
+    --gray-700:#334155;
+    --gray-500:#64748B;
+    --gray-300:#CBD5E1;
+    --gray-100:#F1F5F9;
+    --gray-50:#F8FAFC;
+    --white:#FFFFFF;
+    --bg:#EEF2EF;
+    --shadow-sm:0 1px 2px rgba(15,23,42,0.06);
+    --shadow-md:0 4px 12px rgba(15,23,42,0.08);
+    --shadow-lg:0 20px 40px -12px rgba(15,23,42,0.18);
+    --font-display:'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-mono:'DM Mono', 'SF Mono', monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html, body{height:100%;}
+  body{
+    font-family:var(--font-display);
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(46,158,91,0.08), transparent 60%),
+      radial-gradient(900px 500px at 110% 110%, rgba(244,166,29,0.06), transparent 60%),
+      var(--bg);
+    color:var(--gray-900);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* ─── STAGE / BROWSER FRAME ─────────────────────────── */
+  .stage{
+    max-width:1200px;
+    margin:0 auto;
+    padding:40px 24px 80px;
+    display:grid;
+    grid-template-columns:1fr 380px;
+    gap:48px;
+    align-items:start;
+  }
+
+  .sidebar{
+    position:sticky;
+    top:40px;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:32px;
+  }
+  .brand-mark{
+    width:44px;height:44px;
+    background:var(--green-700);
+    border-radius:12px;
+    display:grid;place-items:center;
+    color:white;font-size:22px;
+    box-shadow:var(--shadow-md);
+  }
+  .brand-name{font-weight:800;font-size:18px;letter-spacing:-0.02em;}
+  .brand-sub{font-size:12px;color:var(--gray-500);font-weight:500;}
+
+  .intro h1{
+    font-size:44px;
+    line-height:1.05;
+    letter-spacing:-0.03em;
+    font-weight:800;
+    margin-bottom:16px;
+  }
+  .intro h1 em{
+    font-style:normal;
+    color:var(--green-700);
+  }
+  .intro p{
+    color:var(--gray-700);
+    font-size:15px;
+    line-height:1.6;
+    margin-bottom:28px;
+  }
+
+  .nav-tabs{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:32px;
+  }
+  .nav-tab{
+    padding:14px 16px;
+    border-radius:12px;
+    background:transparent;
+    border:1px solid transparent;
+    text-align:left;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    color:var(--gray-700);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    transition:all 0.2s;
+  }
+  .nav-tab:hover{background:var(--gray-50);}
+  .nav-tab.active{
+    background:var(--green-700);
+    color:var(--white);
+    box-shadow:var(--shadow-md);
+  }
+  .nav-tab .step-num{
+    font-family:var(--font-mono);
+    font-size:11px;
+    opacity:0.6;
+    letter-spacing:0.05em;
+  }
+  .nav-tab.active .step-num{opacity:0.8;}
+
+  .nav-group-label{
+    font-size:10px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--gray-500);
+    padding:12px 4px 6px;
+    margin-top:8px;
+  }
+  .nav-group-label:first-child{margin-top:0;padding-top:4px;}
+
+  /* ─── AUTH SCREENS ─────────────────────────────────── */
+
+  /* Splash */
+  .splash-screen{
+    background:linear-gradient(160deg, var(--green-700) 0%, var(--green-900) 100%);
+    color:white;
+    flex:1;
+    display:flex !important;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px 32px;
+    position:relative;
+    overflow:hidden;
+  }
+  .splash-screen::before,
+  .splash-screen::after{
+    content:'';
+    position:absolute;
+    border-radius:50%;
+    background:rgba(46,158,91,0.25);
+    filter:blur(20px);
+  }
+  .splash-screen::before{
+    width:280px;height:280px;
+    top:-100px;right:-80px;
+  }
+  .splash-screen::after{
+    width:200px;height:200px;
+    bottom:60px;left:-60px;
+    background:rgba(244,166,29,0.15);
+  }
+  .splash-logo{
+    width:120px;height:120px;
+    background:white;
+    border-radius:32px;
+    display:grid;place-items:center;
+    font-size:56px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.25);
+    margin-bottom:32px;
+    position:relative;
+    z-index:2;
+    animation:bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes bounceIn{
+    from{opacity:0;transform:scale(0.5);}
+    to{opacity:1;transform:scale(1);}
+  }
+  .splash-title{
+    font-size:32px;
+    font-weight:800;
+    letter-spacing:-0.03em;
+    text-align:center;
+    margin-bottom:8px;
+    z-index:2;
+  }
+  .splash-tagline{
+    font-size:14px;
+    opacity:0.85;
+    text-align:center;
+    margin-bottom:auto;
+    z-index:2;
+  }
+  .splash-actions{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    z-index:2;
+    margin-top:40px;
+  }
+  .splash-loader{
+    width:40px;height:40px;
+    border:3px solid rgba(255,255,255,0.2);
+    border-top-color:white;
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin-top:40px;
+    z-index:2;
+    display:none;
+  }
+  .splash-loader.active{display:block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Shared auth container */
+  .auth-body{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:24px 24px 32px;
+    background:white;
+    overflow-y:auto;
+  }
+  .auth-back{
+    background:transparent;
+    border:none;
+    color:var(--gray-700);
+    font-size:22px;
+    cursor:pointer;
+    padding:0;
+    width:36px;height:36px;
+    display:grid;place-items:center;
+    margin-bottom:20px;
+    margin-left:-8px;
+  }
+  .auth-title{
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    margin-bottom:8px;
+    color:var(--gray-900);
+  }
+  .auth-sub{
+    font-size:14px;
+    color:var(--gray-500);
+    line-height:1.5;
+    margin-bottom:32px;
+  }
+  .auth-sub strong{color:var(--gray-900);font-weight:700;}
+
+  /* Phone input */
+  .phone-input{
+    display:flex;
+    align-items:stretch;
+    border:1.5px solid var(--gray-100);
+    border-radius:12px;
+    overflow:hidden;
+    background:white;
+    transition:border-color 0.15s;
+    margin-bottom:8px;
+  }
+  .phone-input:focus-within{
+    border-color:var(--green-600);
+    box-shadow:0 0 0 3px rgba(46,158,91,0.1);
+  }
+  .country-code{
+    background:var(--gray-50);
+    padding:14px 12px;
+    border-right:1px solid var(--gray-100);
+    font-size:14px;
+    font-weight:600;
+    color:var(--gray-700);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .phone-input input{
+    flex:1;
+    border:none;
+    padding:14px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:500;
+    color:var(--gray-900);
+    outline:none;
+    background:transparent;
+  }
+  .phone-input input::placeholder{color:var(--gray-500);font-weight:400;}
+  .field-info{
+    font-size:12px;
+    color:var(--gray-500);
+    margin-bottom:24px;
+    line-height:1.4;
+  }
+
+  /* Password field */
+  .password-input{
+    position:relative;
+    margin-bottom:8px;
+  }
+  .password-input input{
+    width:100%;
+    padding:14px 44px 14px 14px;
+    border:1.5px solid var(--gray-100);
+    border-radius:12px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:500;
+    outline:none;
+    transition:border-color 0.15s;
+  }
+  .password-input input:focus{
+    border-color:var(--green-600);
+    box-shadow:0 0 0 3px rgba(46,158,91,0.1);
+  }
+  .password-toggle{
+    position:absolute;
+    right:10px;top:50%;
+    transform:translateY(-50%);
+    background:none;border:none;
+    cursor:pointer;
+    padding:8px;
+    font-size:16px;
+    color:var(--gray-500);
+  }
+
+  /* Primary CTA */
+  .btn-primary-full{
+    width:100%;
+    padding:16px;
+    background:var(--green-700);
+    color:white;
+    border:none;
+    border-radius:14px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.15s;
+    margin-top:8px;
+  }
+  .btn-primary-full:hover:not(:disabled){background:var(--green-800);}
+  .btn-primary-full:active:not(:disabled){transform:scale(0.98);}
+  .btn-primary-full:disabled{
+    background:var(--gray-300);
+    cursor:not-allowed;
+  }
+  .btn-amber-full{
+    width:100%;
+    padding:16px;
+    background:var(--amber);
+    color:white;
+    border:none;
+    border-radius:14px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .btn-amber-full:hover{filter:brightness(0.95);}
+  .btn-amber-full:active{transform:scale(0.98);}
+  .btn-ghost-full{
+    width:100%;
+    padding:16px;
+    background:transparent;
+    color:white;
+    border:1.5px solid rgba(255,255,255,0.4);
+    border-radius:14px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .auth-footer{
+    text-align:center;
+    margin-top:24px;
+    font-size:13px;
+    color:var(--gray-500);
+  }
+  .auth-link{
+    color:var(--green-700);
+    font-weight:700;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:13px;
+    padding:0 4px;
+  }
+  .auth-link:hover{text-decoration:underline;}
+
+  /* Divider */
+  .auth-divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:24px 0;
+    color:var(--gray-500);
+    font-size:12px;
+  }
+  .auth-divider::before,
+  .auth-divider::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--gray-100);
+  }
+
+  /* Terms note */
+  .terms-note{
+    font-size:11px;
+    color:var(--gray-500);
+    text-align:center;
+    margin-top:16px;
+    line-height:1.5;
+  }
+  .terms-note a{color:var(--green-700);font-weight:600;}
+
+  /* OTP boxes */
+  .otp-container{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-bottom:24px;
+  }
+  .otp-box{
+    width:56px;
+    height:64px;
+    border:1.5px solid var(--gray-100);
+    border-radius:14px;
+    text-align:center;
+    font-family:var(--font-mono);
+    font-size:28px;
+    font-weight:700;
+    color:var(--gray-900);
+    background:white;
+    transition:all 0.15s;
+    outline:none;
+  }
+  .otp-box:focus{
+    border-color:var(--green-600);
+    box-shadow:0 0 0 3px rgba(46,158,91,0.1);
+    transform:scale(1.04);
+  }
+  .otp-box.filled{
+    border-color:var(--green-600);
+    background:var(--green-50);
+  }
+  .otp-resend{
+    text-align:center;
+    font-size:13px;
+    color:var(--gray-500);
+    margin-bottom:24px;
+  }
+  .otp-resend button{
+    color:var(--green-700);
+    font-weight:700;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:13px;
+  }
+  .otp-resend button:disabled{
+    color:var(--gray-300);
+    cursor:not-allowed;
+  }
+  .otp-timer{
+    font-family:var(--font-mono);
+    font-weight:600;
+    color:var(--gray-700);
+  }
+
+  /* Setup name (greeting) */
+  .setup-illustration{
+    text-align:center;
+    margin-bottom:32px;
+  }
+  .setup-emoji{
+    font-size:80px;
+    margin-bottom:16px;
+    display:inline-block;
+    animation:wave 1.5s ease-in-out infinite;
+    transform-origin:70% 70%;
+  }
+  @keyframes wave{
+    0%,100%{transform:rotate(0deg);}
+    25%{transform:rotate(15deg);}
+    75%{transform:rotate(-8deg);}
+  }
+  .name-input{
+    width:100%;
+    padding:16px;
+    border:1.5px solid var(--gray-100);
+    border-radius:12px;
+    font-family:inherit;
+    font-size:16px;
+    font-weight:500;
+    outline:none;
+    text-align:center;
+    margin-bottom:20px;
+    transition:border-color 0.15s;
+  }
+  .name-input:focus{
+    border-color:var(--green-600);
+    box-shadow:0 0 0 3px rgba(46,158,91,0.1);
+  }
+  .setup-preview{
+    background:var(--green-50);
+    border:1px dashed var(--green-600);
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+    font-size:13px;
+    color:var(--green-800);
+    margin-bottom:32px;
+    min-height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .setup-preview strong{color:var(--green-900);}
+
+  .stats-panel{
+    background:var(--white);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:var(--shadow-sm);
+    border:1px solid var(--gray-100);
+  }
+  .stats-panel h3{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--gray-500);
+    font-weight:700;
+    margin-bottom:14px;
+  }
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 0;
+    border-bottom:1px dashed var(--gray-100);
+    font-size:13px;
+  }
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .label{color:var(--gray-700);}
+  .stat-row .value{font-family:var(--font-mono);font-weight:600;color:var(--gray-900);}
+
+  /* ─── PHONE FRAME ─────────────────────────────────────── */
+  .phone-wrap{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding-top:20px;
+  }
+  .phone{
+    width:380px;
+    height:780px;
+    background:#1C1C1E;
+    border-radius:44px;
+    padding:12px;
+    box-shadow:
+      0 40px 80px -20px rgba(15,23,42,0.35),
+      0 0 0 2px #0a0a0a,
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position:relative;
+  }
+  .phone::before{
+    content:'';
+    position:absolute;
+    top:22px;
+    left:50%;
+    transform:translateX(-50%);
+    width:120px;
+    height:32px;
+    background:#000;
+    border-radius:20px;
+    z-index:10;
+  }
+  .phone-screen{
+    width:100%;
+    height:100%;
+    background:var(--gray-50);
+    border-radius:32px;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .status-bar{
+    height:44px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 32px 0 28px;
+    font-size:14px;
+    font-weight:600;
+    flex-shrink:0;
+    z-index:5;
+    position:relative;
+  }
+  .status-bar .time{font-family:var(--font-mono);}
+  .status-bar .icons{display:flex;gap:6px;font-size:11px;}
+
+  /* ─── SCREEN CONTENT ─────────────────────────────────── */
+  .screen{
+    display:none;
+    flex-direction:column;
+    flex:1;
+    min-height:0;
+    animation:fadeSlide 0.35s ease-out;
+  }
+  .screen.active{display:flex;}
+  @keyframes fadeSlide{
+    from{opacity:0;transform:translateX(8px);}
+    to{opacity:1;transform:translateX(0);}
+  }
+
+  /* ── HOME SCREEN ── */
+  .home-header{
+    background:linear-gradient(160deg, var(--green-700), var(--green-800));
+    color:white;
+    padding:8px 20px 24px;
+    border-radius:0 0 24px 24px;
+  }
+  .home-header .greeting{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+  }
+  .home-header .hi{font-size:13px;opacity:0.75;margin-bottom:4px;}
+  .home-header h1{font-size:22px;font-weight:700;letter-spacing:-0.02em;}
+  .bell-btn{
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.2);
+    color:white;
+    width:40px;height:40px;
+    border-radius:12px;
+    display:grid;place-items:center;
+    cursor:pointer;
+    position:relative;
+    font-size:16px;
+  }
+  .bell-badge{
+    position:absolute;
+    top:-4px;right:-4px;
+    background:var(--red);
+    color:white;
+    width:18px;height:18px;
+    border-radius:50%;
+    font-size:10px;
+    font-weight:700;
+    display:grid;place-items:center;
+    border:2px solid var(--green-700);
+  }
+
+  .summary-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-top:20px;
+  }
+  .summary-card{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:14px;
+    padding:12px 10px;
+    text-align:center;
+  }
+  .summary-card .num{
+    font-size:26px;
+    font-weight:800;
+    line-height:1;
+    letter-spacing:-0.03em;
+  }
+  .summary-card .lbl{
+    font-size:10px;
+    opacity:0.85;
+    margin-top:4px;
+    line-height:1.2;
+  }
+  .summary-card.urgent .num{color:#FFB4A2;}
+  .summary-card.warn .num{color:#FFD59E;}
+
+  .home-body{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 20px 100px;
+  }
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    margin-top:20px;
+  }
+  .section-head:first-child{margin-top:4px;}
+  .section-head h2{
+    font-size:13px;
+    font-weight:700;
+    color:var(--gray-900);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .section-head h2 .dot{
+    width:8px;height:8px;border-radius:50%;
+  }
+  .section-head .count{
+    font-size:11px;
+    color:var(--gray-500);
+    font-family:var(--font-mono);
+  }
+
+  .food-list{display:flex;flex-direction:column;gap:8px;}
+  .food-item{
+    background:white;
+    border-radius:14px;
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:var(--shadow-sm);
+    border:1px solid var(--gray-100);
+    cursor:pointer;
+    transition:transform 0.15s;
+  }
+  .food-item:active{transform:scale(0.98);}
+  .food-emoji{
+    width:40px;height:40px;
+    background:var(--gray-50);
+    border-radius:10px;
+    display:grid;place-items:center;
+    font-size:20px;
+    flex-shrink:0;
+  }
+  .food-info{flex:1;min-width:0;}
+  .food-name{
+    font-weight:600;
+    font-size:14px;
+    color:var(--gray-900);
+    margin-bottom:2px;
+  }
+  .food-meta{
+    font-size:11px;
+    color:var(--gray-500);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .food-badge{
+    font-size:10px;
+    font-weight:700;
+    padding:4px 8px;
+    border-radius:6px;
+    letter-spacing:0.03em;
+    white-space:nowrap;
+  }
+  .badge-urgent{background:var(--red-light);color:var(--red);}
+  .badge-warn{background:var(--orange-light);color:var(--orange);}
+  .badge-soon{background:var(--amber-light);color:#8B6100;}
+  .badge-safe{background:var(--green-100);color:var(--green-700);}
+
+  .fab{
+    position:absolute;
+    right:20px;
+    bottom:88px;
+    width:60px;height:60px;
+    background:var(--amber);
+    color:white;
+    border:none;
+    border-radius:50%;
+    font-size:28px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(244,166,29,0.5);
+    z-index:20;
+    transition:transform 0.2s;
+    display:grid;place-items:center;
+  }
+  .fab:hover{transform:scale(1.05);}
+  .fab:active{transform:scale(0.95);}
+
+  .bottom-nav{
+    position:absolute;
+    bottom:0;left:0;right:0;
+    background:white;
+    border-top:1px solid var(--gray-100);
+    padding:8px 12px 24px;
+    display:flex;
+    justify-content:space-around;
+    z-index:15;
+    box-shadow:0 -4px 12px rgba(15,23,42,0.04);
+  }
+  .nav-item{
+    background:none;
+    border:none;
+    color:var(--gray-500);
+    font-family:inherit;
+    font-size:10px;
+    font-weight:600;
+    cursor:pointer;
+    padding:6px 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    border-radius:12px;
+    transition:all 0.15s;
+    flex:1;
+    max-width:80px;
+  }
+  .nav-item:active{transform:scale(0.94);}
+  .nav-item.active{
+    color:var(--green-700);
+    background:var(--green-50);
+  }
+  .nav-item .ico{
+    font-size:20px;
+    transition:transform 0.15s;
+  }
+  .nav-item.active .ico{transform:scale(1.1);}
+
+  /* ── PROFIL SCREEN ── */
+  .profile-header{
+    background:linear-gradient(160deg, var(--green-700), var(--green-900));
+    color:white;
+    padding:24px 20px 32px;
+    text-align:center;
+    border-radius:0 0 24px 24px;
+  }
+  .profile-avatar{
+    width:80px;height:80px;
+    background:white;
+    color:var(--green-700);
+    border-radius:50%;
+    display:grid;place-items:center;
+    font-size:32px;
+    font-weight:800;
+    margin:0 auto 12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+    letter-spacing:-0.02em;
+  }
+  .profile-name{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin-bottom:2px;
+  }
+  .profile-phone{
+    font-size:12px;
+    opacity:0.75;
+    font-family:var(--font-mono);
+  }
+  .profile-body{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 16px 100px;
+  }
+  .profile-stats{
+    background:white;
+    border-radius:16px;
+    padding:16px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    box-shadow:var(--shadow-sm);
+    border:1px solid var(--gray-100);
+    margin-top:-20px;
+    margin-bottom:20px;
+    position:relative;
+    z-index:2;
+  }
+  .pstat{
+    text-align:center;
+    padding:4px;
+    border-right:1px solid var(--gray-100);
+  }
+  .pstat:last-child{border-right:none;}
+  .pstat-num{
+    font-size:22px;
+    font-weight:800;
+    color:var(--green-700);
+    letter-spacing:-0.03em;
+    line-height:1;
+  }
+  .pstat-lbl{
+    font-size:10px;
+    color:var(--gray-500);
+    margin-top:6px;
+    line-height:1.2;
+    font-weight:500;
+  }
+
+  .profile-section-title{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--gray-500);
+    padding:16px 4px 8px;
+  }
+  .menu-list{
+    background:white;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:var(--shadow-sm);
+    border:1px solid var(--gray-100);
+  }
+  .menu-item{
+    width:100%;
+    background:none;
+    border:none;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    cursor:pointer;
+    font-family:inherit;
+    text-align:left;
+    border-bottom:1px solid var(--gray-100);
+    transition:background 0.15s;
+  }
+  .menu-item:last-child{border-bottom:none;}
+  .menu-item:hover{background:var(--gray-50);}
+  .menu-item:active{background:var(--gray-100);}
+  .menu-ico{
+    width:36px;height:36px;
+    background:var(--green-50);
+    border-radius:10px;
+    display:grid;place-items:center;
+    font-size:18px;
+    flex-shrink:0;
+  }
+  .menu-text{flex:1;min-width:0;}
+  .menu-label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--gray-900);
+    margin-bottom:2px;
+  }
+  .menu-sub{
+    font-size:11px;
+    color:var(--gray-500);
+  }
+  .menu-chev{
+    color:var(--gray-300);
+    font-size:20px;
+    font-weight:400;
+  }
+  .menu-item-danger .menu-ico{
+    background:var(--red-light);
+  }
+  .menu-item-danger .menu-label{color:var(--red);}
+
+  /* Adjust padding on main screens so content doesn't hide under bottom nav */
+  #screen-home .home-body{padding-bottom:120px;}
+  #screen-input .input-body{padding-bottom:100px;}
+  #screen-notif .notif-lock{padding-bottom:100px;}
+
+  /* ── INPUT SCREEN ── */
+  .input-header{
+    background:var(--green-900);
+    color:white;
+    padding:8px 20px 20px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .back-btn{
+    background:rgba(255,255,255,0.1);
+    border:none;
+    color:white;
+    width:36px;height:36px;
+    border-radius:10px;
+    font-size:18px;
+    cursor:pointer;
+    display:grid;place-items:center;
+  }
+  .input-header h1{font-size:17px;font-weight:700;letter-spacing:-0.01em;}
+
+  .input-body{
+    flex:1;
+    overflow-y:auto;
+    padding:20px 20px 24px;
+  }
+  .field-label{
+    font-size:12px;
+    font-weight:700;
+    color:var(--gray-700);
+    margin-bottom:8px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .field-hint{
+    font-size:11px;
+    color:var(--gray-500);
+    margin-top:6px;
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:0;
+  }
+
+  .category-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .cat-chip{
+    background:white;
+    border:1.5px solid var(--gray-100);
+    border-radius:12px;
+    padding:12px 8px;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:600;
+    color:var(--gray-700);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    transition:all 0.15s;
+  }
+  .cat-chip:hover{border-color:var(--green-600);}
+  .cat-chip.selected{
+    background:var(--green-700);
+    color:white;
+    border-color:var(--green-700);
+    box-shadow:var(--shadow-md);
+  }
+  .cat-chip .emoji{font-size:22px;}
+
+  .text-input, .number-input{
+    width:100%;
+    padding:14px 14px;
+    border:1.5px solid var(--gray-100);
+    border-radius:12px;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:500;
+    color:var(--gray-900);
+    background:white;
+    transition:border-color 0.15s;
+    margin-bottom:20px;
+  }
+  .text-input:focus, .number-input:focus{
+    outline:none;
+    border-color:var(--green-600);
+    box-shadow:0 0 0 3px rgba(46,158,91,0.1);
+  }
+  .text-input::placeholder{color:var(--gray-500);font-weight:400;}
+
+  /* Auto-generate estimate card */
+  .estimate-card{
+    background:linear-gradient(135deg, var(--green-50), var(--green-100));
+    border:1.5px solid var(--green-600);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:16px;
+    position:relative;
+    overflow:hidden;
+    animation:pulse-in 0.4s ease-out;
+  }
+  @keyframes pulse-in{
+    from{opacity:0;transform:scale(0.95);}
+    to{opacity:1;transform:scale(1);}
+  }
+  .estimate-card::before{
+    content:'✨';
+    position:absolute;
+    top:12px;right:14px;
+    font-size:16px;
+    opacity:0.7;
+  }
+  .estimate-eyebrow{
+    font-size:10px;
+    font-weight:700;
+    color:var(--green-700);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:4px;
+  }
+  .estimate-desc{
+    font-size:12px;
+    color:var(--gray-700);
+    margin-bottom:6px;
+  }
+  .estimate-desc strong{color:var(--gray-900);font-weight:700;}
+  .estimate-value{
+    font-size:24px;
+    font-weight:800;
+    color:var(--green-800);
+    letter-spacing:-0.02em;
+    line-height:1;
+    margin-bottom:4px;
+  }
+  .estimate-note{
+    font-size:11px;
+    color:var(--gray-500);
+    font-style:italic;
+  }
+
+  .shelf-options{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .shelf-chip{
+    background:white;
+    border:1.5px solid var(--gray-100);
+    border-radius:12px;
+    padding:12px 4px;
+    font-family:inherit;
+    font-size:12px;
+    font-weight:600;
+    color:var(--gray-700);
+    cursor:pointer;
+    position:relative;
+    text-align:center;
+    transition:all 0.15s;
+  }
+  .shelf-chip:hover{border-color:var(--green-600);}
+  .shelf-chip.selected{
+    background:var(--green-700);
+    color:white;
+    border-color:var(--green-700);
+  }
+  .shelf-chip .mini-badge{
+    position:absolute;
+    top:-6px;right:-4px;
+    background:var(--amber);
+    color:white;
+    font-size:8px;
+    font-weight:800;
+    padding:2px 6px;
+    border-radius:4px;
+    letter-spacing:0.05em;
+  }
+  .custom-picker{
+    display:none;
+    margin-top:8px;
+    background:white;
+    padding:14px;
+    border-radius:12px;
+    border:1.5px dashed var(--green-600);
+  }
+  .custom-picker.visible{display:block;}
+  .custom-picker .picker-row{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .custom-picker .picker-row + .picker-row{
+    margin-top:10px;
+  }
+  .custom-picker input{
+    flex:1;
+    padding:10px 12px;
+    border:1px solid var(--gray-300);
+    border-radius:8px;
+    font-family:inherit;
+    font-size:14px;
+    width:100%;
+    color:var(--gray-900);
+  }
+  .custom-picker input[type="date"]{
+    font-family:inherit;
+    font-size:13px;
+    color:var(--gray-900);
+  }
+  .custom-picker label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--gray-700);
+    min-width:100px;
+  }
+  .picker-mode-toggle{
+    display:flex;
+    gap:6px;
+    margin-bottom:12px;
+    background:var(--gray-50);
+    padding:4px;
+    border-radius:10px;
+  }
+  .picker-mode-btn{
+    flex:1;
+    padding:8px 6px;
+    background:transparent;
+    border:none;
+    border-radius:8px;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:600;
+    color:var(--gray-500);
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .picker-mode-btn.active{
+    background:white;
+    color:var(--green-700);
+    box-shadow:var(--shadow-sm);
+  }
+  .picker-hint{
+    font-size:11px;
+    color:var(--gray-500);
+    margin-top:8px;
+    font-style:italic;
+  }
+
+  .save-btn{
+    position:sticky;
+    bottom:0;
+    width:100%;
+    padding:16px;
+    background:var(--amber);
+    color:white;
+    border:none;
+    border-radius:14px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(244,166,29,0.4);
+    margin-top:8px;
+  }
+  .save-btn:disabled{
+    background:var(--gray-300);
+    box-shadow:none;
+    cursor:not-allowed;
+  }
+  .save-btn:active:not(:disabled){transform:scale(0.98);}
+
+  /* ── NOTIFIKASI SCREEN ── */
+  .notif-lock{
+    background:linear-gradient(180deg, #1a1a2e 0%, #0f1420 100%);
+    color:white;
+    flex:1;
+    padding:24px 16px 20px;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .lock-time{
+    text-align:center;
+    margin-top:8px;
+    margin-bottom:20px;
+  }
+  .lock-time .time{
+    font-size:56px;
+    font-weight:300;
+    letter-spacing:-0.03em;
+    line-height:1;
+    font-family:var(--font-mono);
+  }
+  .lock-time .date{
+    font-size:13px;
+    opacity:0.7;
+    margin-top:6px;
+  }
+
+  .notif-card{
+    background:rgba(255,255,255,0.96);
+    color:var(--gray-900);
+    border-radius:16px;
+    padding:14px;
+    margin-bottom:12px;
+    box-shadow:var(--shadow-lg);
+    backdrop-filter:blur(20px);
+  }
+  .notif-card.urgent{border-left:4px solid var(--red);}
+  .notif-card.warn{border-left:4px solid var(--yellow);}
+
+  .notif-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .notif-head .app{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    font-weight:700;
+    color:var(--gray-700);
+  }
+  .notif-head .app-ico{
+    width:16px;height:16px;
+    background:var(--green-700);
+    border-radius:4px;
+    display:grid;place-items:center;
+    color:white;
+    font-size:9px;
+  }
+  .notif-head .time{
+    font-size:10px;
+    color:var(--gray-500);
+    font-family:var(--font-mono);
+  }
+  .notif-title{
+    font-size:14px;
+    font-weight:700;
+    margin-bottom:4px;
+    letter-spacing:-0.01em;
+  }
+  .notif-body{
+    font-size:12px;
+    color:var(--gray-700);
+    line-height:1.4;
+    margin-bottom:10px;
+  }
+  .notif-actions{
+    display:flex;
+    gap:6px;
+  }
+  .notif-actions button{
+    flex:1;
+    padding:8px;
+    border:none;
+    border-radius:8px;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-primary-urgent{background:var(--red);color:white;}
+  .btn-primary-warn{background:var(--yellow);color:#5a4400;}
+  .btn-secondary{background:var(--gray-100);color:var(--gray-700);}
+
+  .notif-settings{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:14px;
+    padding:14px;
+    margin-top:auto;
+    backdrop-filter:blur(20px);
+  }
+  .push-status-banner{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:14px;
+    transition:all 0.2s;
+  }
+  .push-status-banner.active{
+    background:rgba(46,158,91,0.15);
+    border-color:rgba(46,158,91,0.4);
+  }
+  .push-status-icon{
+    font-size:22px;
+    width:38px;height:38px;
+    display:grid;place-items:center;
+    background:rgba(255,255,255,0.08);
+    border-radius:10px;
+    flex-shrink:0;
+  }
+  .push-status-title{
+    font-size:12.5px;
+    font-weight:700;
+    color:white;
+    margin-bottom:2px;
+  }
+  .push-status-sub{
+    font-size:10.5px;
+    color:rgba(255,255,255,0.6);
+    line-height:1.3;
+  }
+  .notif-settings h3{
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:10px;
+    color:white;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .toggle-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:6px 0;
+    font-size:12px;
+    color:rgba(255,255,255,0.85);
+  }
+  .toggle{
+    width:36px;height:20px;
+    background:rgba(255,255,255,0.2);
+    border-radius:10px;
+    position:relative;
+    cursor:pointer;
+    transition:background 0.2s;
+    border:none;
+    padding:0;
+    flex-shrink:0;
+  }
+  .toggle::after{
+    content:'';
+    position:absolute;
+    top:2px;left:2px;
+    width:16px;height:16px;
+    background:white;
+    border-radius:50%;
+    transition:transform 0.2s;
+  }
+  .toggle.on{background:var(--green-600);}
+  .toggle.on::after{transform:translateX(16px);}
+
+  /* Toast */
+  .toast{
+    position:fixed;
+    bottom:32px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--gray-900);
+    color:white;
+    padding:14px 22px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:600;
+    box-shadow:var(--shadow-lg);
+    opacity:0;
+    pointer-events:none;
+    transition:all 0.3s;
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast .check{
+    background:var(--green-600);
+    color:white;
+    width:22px;height:22px;
+    border-radius:50%;
+    display:grid;place-items:center;
+    font-size:12px;
+  }
+
+  /* Empty */
+  .empty{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--gray-500);
+    font-size:13px;
+  }
+  .empty .emo{font-size:36px;margin-bottom:8px;}
+
+  /* Detail modal */
+  .modal-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    align-items:flex-end;
+    z-index:50;
+    border-radius:32px;
+    overflow:hidden;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:white;
+    width:100%;
+    border-radius:20px 20px 0 0;
+    padding:20px;
+    animation:slideUp 0.3s ease-out;
+  }
+  @keyframes slideUp{
+    from{transform:translateY(100%);}
+    to{transform:translateY(0);}
+  }
+  .modal-handle{
+    width:40px;height:4px;
+    background:var(--gray-300);
+    border-radius:2px;
+    margin:0 auto 16px;
+  }
+  .modal h3{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:6px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .modal h3 .em{font-size:26px;}
+  .modal .meta{color:var(--gray-500);font-size:12px;margin-bottom:16px;}
+  .modal-actions{display:flex;gap:8px;margin-top:16px;}
+  .modal-actions button{
+    flex:1;padding:12px;
+    border:none;border-radius:10px;
+    font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;
+  }
+  .btn-delete{background:var(--red-light);color:var(--red);}
+  .btn-used{background:var(--green-700);color:white;}
+  .btn-secondary-full{background:var(--gray-100);color:var(--gray-700);}
+
+  /* Recipe modal */
+  .btn-recipe{
+    background:var(--amber-light);
+    color:#8B6100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+  }
+  .recipe-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:340px;
+    overflow-y:auto;
+    padding:4px 2px;
+  }
+  .recipe-card{
+    background:linear-gradient(135deg, var(--green-50), #FFFFFF);
+    border:1px solid var(--green-100);
+    border-radius:14px;
+    padding:14px;
+    cursor:pointer;
+    transition:all 0.15s;
+  }
+  .recipe-card:hover{border-color:var(--green-600);transform:translateY(-1px);}
+  .recipe-card:active{transform:scale(0.99);}
+  .recipe-card-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .recipe-emo{
+    width:44px;height:44px;
+    background:white;
+    border-radius:12px;
+    display:grid;place-items:center;
+    font-size:22px;
+    flex-shrink:0;
+    box-shadow:var(--shadow-sm);
+  }
+  .recipe-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--gray-900);
+    letter-spacing:-0.01em;
+    margin-bottom:2px;
+    line-height:1.25;
+  }
+  .recipe-meta{
+    display:flex;
+    gap:10px;
+    font-size:11px;
+    color:var(--gray-500);
+  }
+  .recipe-meta span{display:flex;align-items:center;gap:3px;}
+  .recipe-uses{
+    font-size:11px;
+    color:var(--green-700);
+    background:var(--green-100);
+    padding:3px 8px;
+    border-radius:6px;
+    display:inline-block;
+    margin-top:8px;
+    font-weight:600;
+  }
+
+  /* Recipe detail view (inside modal) */
+  .recipe-detail{
+    max-height:420px;
+    overflow-y:auto;
+    padding:4px 2px;
+  }
+  .recipe-hero{
+    background:linear-gradient(135deg, var(--green-700), var(--green-800));
+    color:white;
+    padding:16px;
+    border-radius:14px;
+    margin-bottom:16px;
+    text-align:center;
+  }
+  .recipe-hero .emo{font-size:40px;line-height:1;margin-bottom:6px;}
+  .recipe-hero .title{font-size:16px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px;}
+  .recipe-hero .meta{display:flex;justify-content:center;gap:14px;font-size:11px;opacity:0.9;}
+  .recipe-section{margin-bottom:14px;}
+  .recipe-section h4{
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--green-700);
+    margin-bottom:8px;
+  }
+  .recipe-ingredients{
+    list-style:none;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .recipe-ingredients li{
+    padding:8px 12px;
+    background:var(--gray-50);
+    border-radius:8px;
+    font-size:12.5px;
+    color:var(--gray-700);
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .recipe-ingredients li::before{
+    content:'✓';
+    color:var(--green-600);
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .recipe-steps{
+    list-style:none;
+    padding:0;
+    counter-reset:step;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .recipe-steps li{
+    counter-increment:step;
+    padding:10px 12px 10px 40px;
+    background:var(--gray-50);
+    border-radius:10px;
+    font-size:12.5px;
+    color:var(--gray-700);
+    line-height:1.5;
+    position:relative;
+  }
+  .recipe-steps li::before{
+    content:counter(step);
+    position:absolute;
+    left:10px;top:10px;
+    width:22px;height:22px;
+    background:var(--green-700);
+    color:white;
+    border-radius:50%;
+    display:grid;place-items:center;
+    font-size:11px;
+    font-weight:700;
+  }
+  .recipe-back{
+    background:none;
+    border:none;
+    color:var(--green-700);
+    font-family:inherit;
+    font-weight:600;
+    font-size:13px;
+    padding:8px 0;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+
+  /* Prompt banner for dosen */
+  .prompt-banner{
+    background:linear-gradient(135deg, var(--green-700), var(--green-800));
+    color:white;
+    padding:14px 18px;
+    border-radius:14px;
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:24px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .prompt-banner .ico{
+    font-size:20px;
+    flex-shrink:0;
+  }
+  .prompt-banner strong{color:#FFD59E;}
+
+  /* Responsive */
+  @media (max-width: 1024px){
+    .stage{grid-template-columns:1fr;padding:24px 16px;}
+    .sidebar{position:static;}
+    .phone-wrap{padding-top:0;}
+  }
+  @media (max-width: 420px){
+    .phone{
+      width:100%;
+      max-width:380px;
+      height:auto;
+      aspect-ratio:380/780;
+    }
+  }
+  /* ═══ PWA STANDALONE MODE ═══════════════════════════
+     The app fills the viewport directly — no simulator
+     frame, no sidebar. Works on mobile & desktop. */
+  body{
+    background:var(--green-900);
+  }
+  .stage{
+    display:block;
+    max-width:none;
+    padding:0;
+    gap:0;
+  }
+  .sidebar{display:none;}
+  .phone-wrap{
+    display:block;
+    padding:0;
+  }
+  .phone{
+    width:100%;
+    max-width:520px;
+    height:100vh;
+    height:100dvh;
+    margin:0 auto;
+    border-radius:0;
+    padding:0;
+    box-shadow:none;
+    background:transparent;
+  }
+  .phone::before{display:none;}
+  .phone-screen{
+    border-radius:0;
+    height:100vh;
+    height:100dvh;
+  }
+  .status-bar{display:none !important;}
+  .modal-backdrop{border-radius:0;}
+  /* Give auth screens breathing room without OS status bar sim */
+  .auth-body{padding-top:max(24px, env(safe-area-inset-top));}
+  .splash-screen{padding-top:max(40px, env(safe-area-inset-top));}
+  .home-header{padding-top:max(16px, env(safe-area-inset-top));}
+  .input-header{padding-top:max(16px, env(safe-area-inset-top));}
+  .notif-lock{padding-top:max(24px, env(safe-area-inset-top));}
+  .profile-header{padding-top:max(24px, env(safe-area-inset-top));}
+  .bottom-nav{padding-bottom:max(24px, env(safe-area-inset-bottom));}
+  /* Splash logo now shows the brand tile directly */
+  .splash-logo{
+    background:transparent;
+    box-shadow:none;
+  }
+  .splash-logo img, .splash-logo svg{
+    width:120px;height:120px;
+    border-radius:32px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.35);
+    display:block;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img src="icons/icon-192.png" alt="" style="width:100%;height:100%;border-radius:12px;"></div>
+      <div>
+        <div class="brand-name">Smart Food Reminder</div>
+        <div class="brand-sub">Interactive Prototype</div>
+      </div>
+    </div>
+
+    <div class="prompt-banner">
+      <div class="ico">💡</div>
+      <div>Klik tombol di bawah untuk berpindah antar layar, atau berinteraksi langsung dengan mockup HP di sebelah.</div>
+    </div>
+
+    <div class="intro">
+      <h1>Kelola dapur, <em>tanpa mubazir.</em></h1>
+      <p>Prototype interaktif dengan alur lengkap: mulai dari splash screen, isi nama, hingga 3 layar utama aplikasi.</p>
+    </div>
+
+    <nav class="nav-tabs">
+      <div class="nav-group-label">Onboarding</div>
+      <button class="nav-tab active" data-screen="splash">
+        <span style="display:inline-flex;width:20px;height:20px;"><img src="icons/icon-192.png" alt="" style="width:100%;height:100%;border-radius:5px;"></span>
+        <div>
+          <div>Splash Screen</div>
+          <div class="step-num">00 · Pembuka aplikasi</div>
+        </div>
+      </button>
+      <button class="nav-tab" data-screen="setup">
+        <span>👋</span>
+        <div>
+          <div>Setup Nama</div>
+          <div class="step-num">A · Panggilan pengguna</div>
+        </div>
+      </button>
+
+      <div class="nav-group-label">Main App</div>
+      <button class="nav-tab" data-screen="home">
+        <span>🏠</span>
+        <div>
+          <div>Home Dashboard</div>
+          <div class="step-num">01 · Ringkasan stok harian</div>
+        </div>
+      </button>
+      <button class="nav-tab" data-screen="input">
+        <span>➕</span>
+        <div>
+          <div>Input Bahan</div>
+          <div class="step-num">02 · Auto-estimate shelf life</div>
+        </div>
+      </button>
+      <button class="nav-tab" data-screen="notif">
+        <span>🔔</span>
+        <div>
+          <div>Notifikasi Kadaluarsa</div>
+          <div class="step-num">03 · Lock screen preview</div>
+        </div>
+      </button>
+      <button class="nav-tab" data-screen="profile">
+        <span>👤</span>
+        <div>
+          <div>Profil Pengguna</div>
+          <div class="step-num">04 · Akun & pengaturan</div>
+        </div>
+      </button>
+    </nav>
+
+    <div class="stats-panel">
+      <h3>Data Prototype</h3>
+      <div class="stat-row"><span class="label">Bahan tersimpan</span><span class="value" id="stat-total">0</span></div>
+      <div class="stat-row"><span class="label">Kadaluarsa hari ini</span><span class="value" id="stat-today">0</span></div>
+      <div class="stat-row"><span class="label">Segera dipakai (≤3 hari)</span><span class="value" id="stat-soon">0</span></div>
+      <div class="stat-row"><span class="label">Stok aman</span><span class="value" id="stat-safe">0</span></div>
+    </div>
+  </aside>
+
+  <!-- ─── PHONE ─── -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="status-bar" id="status-bar">
+          <span class="time">9:41</span>
+          <span class="icons">●●● ▲ 100%</span>
+        </div>
+
+        <!-- ── SPLASH SCREEN ── -->
+        <div class="screen active" id="screen-splash">
+          <div class="splash-screen">
+            <div class="splash-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="splashbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#20804A"/><stop offset="1" stop-color="#0C3B21"/></linearGradient></defs><rect width="512" height="512" rx="116" fill="url(#splashbg)"/><circle cx="256" cy="262" r="170" fill="none" stroke="rgba(255,255,255,0.30)" stroke-width="16" stroke-linecap="round" stroke-dasharray="828 240" transform="rotate(-35 256 262)"/><circle cx="382" cy="147" r="19" fill="#F4A61D"/><path d="M256 116 C 344 168 356 272 258 356 C 172 272 176 170 256 116 Z" fill="#FFFFFF"/><path d="M257 162 L257 332" stroke="#15613A" stroke-width="13" stroke-linecap="round" fill="none"/><path d="M257 232 C 234 226 218 210 210 190" stroke="#15613A" stroke-width="10" stroke-linecap="round" fill="none"/><path d="M257 272 C 282 266 298 250 306 230" stroke="#15613A" stroke-width="10" stroke-linecap="round" fill="none"/></svg></div>
+            <div class="splash-title">Smart Food Reminder</div>
+            <div class="splash-tagline">Kelola dapur, tanpa mubazir.</div>
+
+            <div class="splash-actions">
+              <button class="btn-amber-full" onclick="showScreen('setup')">Mulai Sekarang</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SETUP NAME SCREEN ── -->
+        <div class="screen" id="screen-setup">
+          <div class="auth-body">
+            <div class="setup-illustration">
+              <div class="setup-emoji">👋</div>
+              <h1 class="auth-title">Halo! Siapa nama Ibu?</h1>
+              <p class="auth-sub">Kami akan memanggil Ibu dengan nama ini di aplikasi.</p>
+            </div>
+
+            <div class="field-label">Nama Panggilan</div>
+            <input type="text" class="name-input" id="setup-name-input" placeholder="cth: Ratna" oninput="updateSetupPreview()" autocomplete="off">
+
+            <div class="setup-preview" id="setup-preview">
+              Nama akan muncul di sini
+            </div>
+
+            <button class="btn-primary-full" id="setup-btn" onclick="completeSetup()" disabled>Mulai Kelola Dapur</button>
+          </div>
+        </div>
+
+        <!-- ── HOME SCREEN ── -->
+        <div class="screen" id="screen-home">
+          <div class="home-header">
+            <div class="greeting">
+              <div>
+                <div class="hi">Halo, <span id="home-user-name">Ibu</span> 👋</div>
+                <h1>Dapur hari ini</h1>
+              </div>
+              <button class="bell-btn" onclick="showScreen('notif')">
+                🔔
+                <span class="bell-badge" id="bell-badge">0</span>
+              </button>
+            </div>
+            <div class="summary-row">
+              <div class="summary-card urgent">
+                <div class="num" id="sum-today">0</div>
+                <div class="lbl">Kadaluarsa<br>hari ini</div>
+              </div>
+              <div class="summary-card warn">
+                <div class="num" id="sum-soon">0</div>
+                <div class="lbl">Segera<br>habis</div>
+              </div>
+              <div class="summary-card">
+                <div class="num" id="sum-total">0</div>
+                <div class="lbl">Total<br>bahan</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-body" id="home-body">
+            <!-- Rendered by JS -->
+          </div>
+
+          <button class="fab" onclick="showScreen('input')" title="Tambah bahan">+</button>
+
+          <!-- Detail Modal -->
+          <div class="modal-backdrop" id="detail-modal" onclick="closeDetail(event)">
+            <div class="modal" onclick="event.stopPropagation()">
+              <div class="modal-handle"></div>
+              <h3><span class="em" id="detail-em">🥬</span><span id="detail-name">—</span></h3>
+              <div class="meta" id="detail-meta">—</div>
+              <div class="stat-row"><span class="label">Kategori</span><span class="value" id="detail-cat">—</span></div>
+              <div class="stat-row"><span class="label">Jumlah</span><span class="value" id="detail-qty">—</span></div>
+              <div class="stat-row"><span class="label">Ditambahkan</span><span class="value" id="detail-added">—</span></div>
+              <div class="modal-actions" style="margin-top:12px;">
+                <button class="btn-recipe" onclick="openRecipes([document.getElementById('detail-name').textContent])">🍽️ Lihat Resep</button>
+              </div>
+              <div class="modal-actions">
+                <button class="btn-delete" onclick="removeFood('delete')">Buang / Hapus</button>
+                <button class="btn-used" onclick="removeFood('used')">Sudah Dipakai</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recipe Modal -->
+          <div class="modal-backdrop" id="recipe-modal" onclick="closeRecipe(event)">
+            <div class="modal" onclick="event.stopPropagation()">
+              <div class="modal-handle"></div>
+              <div id="recipe-modal-content"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── INPUT SCREEN ── -->
+        <div class="screen" id="screen-input">
+          <div class="input-header">
+            <button class="back-btn" onclick="showScreen('home')">←</button>
+            <h1>Tambah Bahan</h1>
+          </div>
+          <div class="input-body">
+            <div class="field-label">
+              Kategori Bahan
+              <div class="field-hint">Pilih dulu, aplikasi akan mengestimasi masa segar</div>
+            </div>
+            <div class="category-grid" id="cat-grid">
+              <!-- Rendered by JS -->
+            </div>
+
+            <div class="field-label">Nama Bahan</div>
+            <input type="text" class="text-input" id="input-name" placeholder="cth: Bayam, Susu UHT, Wortel..." autocomplete="off">
+
+            <!-- Auto-estimate -->
+            <div id="estimate-container"></div>
+
+            <div class="field-label">Jumlah</div>
+            <input type="text" class="text-input" id="input-qty" placeholder="cth: 1 ikat, 2 kotak, 500 gr" value="1 pcs">
+
+            <button class="save-btn" id="save-btn" onclick="saveItem()" disabled>Simpan Bahan</button>
+          </div>
+        </div>
+
+        <!-- ── NOTIFIKASI SCREEN ── -->
+        <div class="screen" id="screen-notif">
+          <div class="notif-lock">
+            <div class="lock-time">
+              <div class="time" id="lock-time">09:41</div>
+              <div class="date" id="lock-date">Senin, 15 Juli</div>
+            </div>
+
+            <div id="notif-list">
+              <!-- Rendered by JS -->
+            </div>
+
+            <div class="notif-settings">
+              <div class="push-status-banner" id="push-status-banner">
+                <div class="push-status-icon" id="push-status-icon">🔕</div>
+                <div class="push-status-text">
+                  <div class="push-status-title" id="push-status-title">Notifikasi belum aktif</div>
+                  <div class="push-status-sub" id="push-status-sub">Aktifkan supaya diingatkan otomatis meski aplikasi tertutup</div>
+                </div>
+              </div>
+
+              <h3>⚙️ Pengaturan Pengingat</h3>
+              <div class="toggle-row">
+                <span>🔔 Notifikasi Push</span>
+                <button class="toggle" id="push-toggle" onclick="togglePush()"></button>
+              </div>
+              <div class="toggle-row">
+                <span>H-3 (3 hari sebelum)</span>
+                <button class="toggle" id="h3-toggle" onclick="toggleNotifPref('notifyH3')"></button>
+              </div>
+              <div class="toggle-row">
+                <span>H-1 (1 hari sebelum)</span>
+                <button class="toggle" id="h1-toggle" onclick="toggleNotifPref('notifyH1')"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── PROFIL SCREEN ── -->
+        <div class="screen" id="screen-profile">
+          <div class="profile-header">
+            <div class="profile-avatar">
+              <span id="profile-initial">R</span>
+            </div>
+            <div class="profile-name" id="profile-name">Bu Ratna</div>
+            <div class="profile-phone">Pengelola dapur 🏠</div>
+          </div>
+
+          <div class="profile-body">
+            <div class="profile-stats">
+              <div class="pstat">
+                <div class="pstat-num" id="pstat-total">0</div>
+                <div class="pstat-lbl">Total<br>bahan</div>
+              </div>
+              <div class="pstat">
+                <div class="pstat-num" id="pstat-saved">0</div>
+                <div class="pstat-lbl">Bahan<br>diselamatkan</div>
+              </div>
+              <div class="pstat">
+                <div class="pstat-num" id="pstat-days">0</div>
+                <div class="pstat-lbl">Hari<br>bergabung</div>
+              </div>
+            </div>
+
+            <div class="profile-section-title">Akun</div>
+            <div class="menu-list">
+              <button class="menu-item" onclick="openEditName()">
+                <span class="menu-ico">👤</span>
+                <div class="menu-text">
+                  <div class="menu-label">Edit Profil</div>
+                  <div class="menu-sub">Ubah nama panggilan</div>
+                </div>
+                <span class="menu-chev">›</span>
+              </button>
+            </div>
+
+            <div class="profile-section-title">Pengaturan</div>
+            <div class="menu-list">
+              <button class="menu-item" onclick="showScreen('notif')">
+                <span class="menu-ico">🔔</span>
+                <div class="menu-text">
+                  <div class="menu-label">Notifikasi</div>
+                  <div class="menu-sub">Atur waktu pengingat</div>
+                </div>
+                <span class="menu-chev">›</span>
+              </button>
+            </div>
+
+            <div class="profile-section-title">Lainnya</div>
+            <div class="menu-list">
+              <button class="menu-item menu-item-danger" onclick="doLogout()">
+                <span class="menu-ico">🚪</span>
+                <div class="menu-text">
+                  <div class="menu-label">Keluar</div>
+                  <div class="menu-sub">Logout dari akun</div>
+                </div>
+                <span class="menu-chev">›</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Name Modal -->
+        <div class="modal-backdrop" id="editname-modal" onclick="closeEditName(event)">
+          <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <h3><span class="em">✏️</span>Edit Nama</h3>
+            <div class="meta">Ubah nama panggilan yang tampil di aplikasi.</div>
+            <input type="text" class="text-input" id="editname-input" placeholder="cth: Ratna" autocomplete="off" style="margin-top:8px;">
+            <div class="modal-actions">
+              <button class="btn-secondary-full" onclick="closeEditName()">Batal</button>
+              <button class="btn-used" id="editname-save" onclick="saveEditName()">Simpan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── PERSISTENT BOTTOM NAV (main app only) ── -->
+        <div class="bottom-nav" id="bottom-nav" style="display:none;">
+          <button class="nav-item" data-nav="home" onclick="showScreen('home')">
+            <span class="ico">🏠</span>
+            <span>Beranda</span>
+          </button>
+          <button class="nav-item" data-nav="input" onclick="showScreen('input')">
+            <span class="ico">➕</span>
+            <span>Tambah</span>
+          </button>
+          <button class="nav-item" data-nav="notif" onclick="showScreen('notif')">
+            <span class="ico">🔔</span>
+            <span>Notifikasi</span>
+          </button>
+          <button class="nav-item" data-nav="profile" onclick="showScreen('profile')">
+            <span class="ico">👤</span>
+            <span>Profil</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="check">✓</span>
+  <span id="toast-text">Bahan berhasil disimpan!</span>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────
+const CATEGORIES = [
+  { id:'sayuran',    label:'Sayuran',       emoji:'🥬', organic:true  },
+  { id:'buah',       label:'Buah',          emoji:'🍎', organic:true  },
+  { id:'daging',     label:'Daging & Ikan', emoji:'🥩', organic:true  },
+  { id:'telur',      label:'Telur',         emoji:'🥚', organic:true  },
+  { id:'susu',       label:'Susu & Olahan', emoji:'🥛', organic:false },
+  { id:'bumbu',      label:'Bumbu',         emoji:'🧂', organic:false },
+  { id:'kering',     label:'Beras & Kering',emoji:'🍚', organic:false },
+  { id:'minuman',    label:'Minuman',       emoji:'🧃', organic:false },
+  { id:'lain',       label:'Lainnya',       emoji:'🍱', organic:true  },
+];
+
+// Shelf life database (dalam hari) — dari sumber umum FSIS/USDA & FoodKeeper
+const SHELF_LIFE_DB = {
+  // Sayuran
+  'bayam':          { days:3,  cat:'sayuran', emoji:'🥬', note:'Simpan di kulkas, jangan dicuci sebelum disimpan' },
+  'kangkung':       { days:3,  cat:'sayuran', emoji:'🥬', note:'Bungkus tisu dapur untuk memperpanjang' },
+  'wortel':         { days:14, cat:'sayuran', emoji:'🥕', note:'Simpan di crisper drawer kulkas' },
+  'tomat':          { days:7,  cat:'sayuran', emoji:'🍅', note:'Suhu ruang jika belum terlalu matang' },
+  'kentang':        { days:21, cat:'sayuran', emoji:'🥔', note:'Simpan di tempat gelap & sejuk' },
+  'bawang merah':   { days:30, cat:'sayuran', emoji:'🧅', note:'Simpan kering, hindari kulkas' },
+  'bawang putih':   { days:60, cat:'sayuran', emoji:'🧄', note:'Simpan kering di suhu ruang' },
+  'brokoli':        { days:5,  cat:'sayuran', emoji:'🥦', note:'Bungkus longgar di kulkas' },
+  'kentang':        { days:21, cat:'sayuran', emoji:'🥔', note:'Simpan di tempat gelap & sejuk' },
+  // Buah
+  'pisang':         { days:5,  cat:'buah',    emoji:'🍌', note:'Suhu ruang, jangan dikulkas jika belum matang' },
+  'apel':           { days:14, cat:'buah',    emoji:'🍎', note:'Kulkas memperpanjang kesegaran 2x' },
+  'jeruk':          { days:10, cat:'buah',    emoji:'🍊', note:'Simpan di kulkas dalam kantong berlubang' },
+  'stroberi':       { days:5,  cat:'buah',    emoji:'🍓', note:'Jangan dicuci sebelum disimpan' },
+  'anggur':         { days:7,  cat:'buah',    emoji:'🍇', note:'Simpan dalam wadah tertutup di kulkas' },
+  'alpukat':        { days:5,  cat:'buah',    emoji:'🥑', note:'Suhu ruang jika belum matang' },
+  // Daging & Ikan
+  'ayam':           { days:2,  cat:'daging',  emoji:'🍗', note:'Kulkas: 1-2 hari. Freezer: hingga 9 bulan' },
+  'daging sapi':    { days:3,  cat:'daging',  emoji:'🥩', note:'Kulkas: 3-5 hari. Freezer: 6-12 bulan' },
+  'ikan':           { days:2,  cat:'daging',  emoji:'🐟', note:'Segera masak atau bekukan' },
+  'udang':          { days:2,  cat:'daging',  emoji:'🦐', note:'Simpan di bagian terdingin kulkas' },
+  // Telur
+  'telur':          { days:21, cat:'telur',   emoji:'🥚', note:'Simpan di rak tengah kulkas, bukan pintu' },
+  'telur puyuh':    { days:14, cat:'telur',   emoji:'🥚', note:'Simpan di kulkas' },
+  // Susu & Olahan
+  'susu uht':       { days:7,  cat:'susu',    emoji:'🥛', note:'Setelah dibuka, habiskan dalam 7 hari' },
+  'susu segar':     { days:5,  cat:'susu',    emoji:'🥛', note:'Cek tanggal di kemasan' },
+  'keju':           { days:14, cat:'susu',    emoji:'🧀', note:'Bungkus rapat setelah dibuka' },
+  'yoghurt':        { days:7,  cat:'susu',    emoji:'🥛', note:'Simpan tertutup di kulkas' },
+  'mentega':        { days:30, cat:'susu',    emoji:'🧈', note:'Bisa disimpan di kulkas atau freezer' },
+  'tahu':           { days:5,  cat:'susu',    emoji:'⬜', note:'Rendam air, ganti setiap hari' },
+  'tempe':          { days:5,  cat:'susu',    emoji:'🟫', note:'Kulkas 5 hari, freezer hingga 3 bulan' },
+  // Bumbu
+  'kecap':          { days:180,cat:'bumbu',   emoji:'🧂', note:'Setelah dibuka, kulkas hingga 6 bulan' },
+  'saos sambal':    { days:180,cat:'bumbu',   emoji:'🌶️', note:'Simpan di kulkas setelah dibuka' },
+  'cabai':          { days:7,  cat:'bumbu',   emoji:'🌶️', note:'Simpan kering di kulkas' },
+  // Kering
+  'beras':          { days:180,cat:'kering',  emoji:'🍚', note:'Simpan kedap udara, hindari lembap' },
+  'mie instan':     { days:180,cat:'kering',  emoji:'🍜', note:'Cek tanggal di kemasan' },
+  'minyak goreng':  { days:365,cat:'kering',  emoji:'🫙', note:'Simpan tertutup, jauhi cahaya' },
+  // Minuman
+  'jus':            { days:7,  cat:'minuman', emoji:'🧃', note:'Setelah dibuka, habiskan dalam 7 hari' },
+  'air kelapa':     { days:2,  cat:'minuman', emoji:'🥥', note:'Segera minum setelah dibuka' },
+};
+
+// ─── RECIPES DATABASE ─────────────────────────────────
+// Each recipe linked to ingredient keywords. Simple Indonesian recipes.
+const RECIPES_DB = [
+  {
+    id: 'r1',
+    title: 'Tumis Bayam Bawang Putih',
+    emoji: '🥬',
+    time: '15 menit',
+    difficulty: 'Mudah',
+    keywords: ['bayam', 'kangkung', 'sawi'],
+    ingredients: [
+      '1 ikat bayam (petik daunnya)',
+      '3 siung bawang putih (cincang)',
+      '1 buah cabai merah (iris)',
+      '2 sdm minyak goreng',
+      'Garam & kaldu bubuk secukupnya',
+    ],
+    steps: [
+      'Panaskan minyak, tumis bawang putih hingga harum.',
+      'Masukkan cabai, aduk 30 detik.',
+      'Masukkan bayam, aduk cepat 2-3 menit.',
+      'Bumbui garam & kaldu, cek rasa, sajikan.',
+    ],
+  },
+  {
+    id: 'r2',
+    title: 'Sup Wortel Tahu Kuah Bening',
+    emoji: '🥕',
+    time: '25 menit',
+    difficulty: 'Mudah',
+    keywords: ['wortel', 'tahu', 'brokoli', 'kentang'],
+    ingredients: [
+      '2 buah wortel (potong bulat)',
+      '1 kotak tahu putih (potong dadu)',
+      '2 siung bawang putih (geprek)',
+      '1 batang daun bawang',
+      'Garam, merica, kaldu bubuk',
+      '500 ml air',
+    ],
+    steps: [
+      'Rebus air hingga mendidih.',
+      'Masukkan wortel, masak 5 menit.',
+      'Tambahkan bawang putih & tahu.',
+      'Bumbui garam, merica, kaldu.',
+      'Masak 5 menit lagi, taburi daun bawang, sajikan hangat.',
+    ],
+  },
+  {
+    id: 'r3',
+    title: 'Susu Kurma Smoothie',
+    emoji: '🥛',
+    time: '5 menit',
+    difficulty: 'Sangat Mudah',
+    keywords: ['susu uht', 'susu segar', 'susu', 'pisang'],
+    ingredients: [
+      '250 ml susu UHT dingin',
+      '2 buah pisang matang',
+      '3 buah kurma (buang biji)',
+      '2 sdm oatmeal (opsional)',
+      'Es batu secukupnya',
+    ],
+    steps: [
+      'Masukkan semua bahan ke blender.',
+      'Blender hingga halus dan berbusa (~30 detik).',
+      'Tuang ke gelas, sajikan segera.',
+    ],
+  },
+  {
+    id: 'r4',
+    title: 'Tahu Goreng Cabe Garam',
+    emoji: '⬜',
+    time: '20 menit',
+    difficulty: 'Mudah',
+    keywords: ['tahu', 'tempe'],
+    ingredients: [
+      '1 kotak tahu putih (potong dadu)',
+      '5 buah cabai rawit (haluskan)',
+      '2 siung bawang putih (haluskan)',
+      '1 sdt garam kasar',
+      'Minyak untuk menggoreng',
+    ],
+    steps: [
+      'Goreng tahu hingga kuning keemasan, tiriskan.',
+      'Sisakan 2 sdm minyak, tumis bawang putih & cabai.',
+      'Masukkan tahu goreng, taburi garam.',
+      'Aduk rata 1 menit, angkat, sajikan.',
+    ],
+  },
+  {
+    id: 'r5',
+    title: 'Telur Dadar Sayur',
+    emoji: '🥚',
+    time: '10 menit',
+    difficulty: 'Sangat Mudah',
+    keywords: ['telur', 'wortel', 'bayam', 'daun bawang'],
+    ingredients: [
+      '3 butir telur',
+      '1 buah wortel (parut halus)',
+      '1 batang daun bawang (iris)',
+      'Garam & merica secukupnya',
+      '1 sdm minyak',
+    ],
+    steps: [
+      'Kocok telur, campur wortel, daun bawang, garam, merica.',
+      'Panaskan minyak, tuang adonan.',
+      'Masak dengan api kecil hingga bawah matang.',
+      'Balik, masak hingga matang merata, sajikan.',
+    ],
+  },
+  {
+    id: 'r6',
+    title: 'Sambal Tomat Segar',
+    emoji: '🍅',
+    time: '10 menit',
+    difficulty: 'Mudah',
+    keywords: ['tomat', 'cabai'],
+    ingredients: [
+      '3 buah tomat merah (potong)',
+      '5 buah cabai rawit',
+      '2 siung bawang merah',
+      '1 siung bawang putih',
+      'Garam & gula secukupnya',
+      'Terasi bakar sedikit (opsional)',
+    ],
+    steps: [
+      'Ulek kasar cabai, bawang merah, bawang putih.',
+      'Tambahkan tomat, ulek hingga lumat.',
+      'Bumbui garam, gula, terasi.',
+      'Sajikan dengan lauk atau nasi hangat.',
+    ],
+  },
+  {
+    id: 'r7',
+    title: 'Nasi Goreng Sederhana',
+    emoji: '🍚',
+    time: '15 menit',
+    difficulty: 'Mudah',
+    keywords: ['beras', 'telur', 'bawang merah', 'kecap'],
+    ingredients: [
+      '2 piring nasi putih',
+      '2 butir telur',
+      '3 siung bawang merah (iris)',
+      '2 sdm kecap manis',
+      '1 sdm saus tiram (opsional)',
+      'Garam, merica secukupnya',
+    ],
+    steps: [
+      'Panaskan minyak, tumis bawang merah hingga harum.',
+      'Masukkan telur, orak-arik.',
+      'Tambahkan nasi, aduk rata.',
+      'Beri kecap, saus tiram, garam, merica.',
+      'Aduk cepat 2 menit, sajikan hangat.',
+    ],
+  },
+];
+
+function findRecipes(foodNames){
+  // foodNames: array of lowercase food name strings
+  // returns unique recipes that match any keyword
+  const matches = new Set();
+  const results = [];
+  RECIPES_DB.forEach(r => {
+    for (const kw of r.keywords){
+      for (const fn of foodNames){
+        if (fn.includes(kw) || kw.includes(fn)){
+          if (!matches.has(r.id)){
+            matches.add(r.id);
+            results.push(r);
+          }
+          return;
+        }
+      }
+    }
+  });
+  return results;
+}
+
+// ─── STATE ────────────────────────────────────────────
+let state = {
+  userName: '',
+  savedCount: 0,
+  joinDate: null,
+  pushEnabled: false,
+  notifyH1: true,
+  notifyH3: true,
+  foods: [], // {id, name, emoji, category, days, addedDate, expiryDate, note}
+  input: { category:null, name:'', shelfChoice:'auto', pickerMode:'days', customDays:null, estimate:null }
+};
+
+// Seed with realistic starter data
+function seedData(){
+  const today = new Date();
+  const addDays = (d) => { const x = new Date(today); x.setDate(x.getDate() + d); return x; };
+  state.foods = [
+    { id:1, name:'Bayam Segar',   emoji:'🥬', category:'sayuran', days:3,  addedDate:addDays(-3), expiryDate:addDays(0),  note:'Bungkus tisu dapur di kulkas' },
+    { id:2, name:'Susu UHT',      emoji:'🥛', category:'susu',    days:7,  addedDate:addDays(-5), expiryDate:addDays(2),  note:'Sudah dibuka' },
+    { id:3, name:'Tahu Putih',    emoji:'⬜', category:'susu',    days:5,  addedDate:addDays(-2), expiryDate:addDays(3),  note:'Rendam air, ganti tiap hari' },
+    { id:4, name:'Tomat',         emoji:'🍅', category:'sayuran', days:7,  addedDate:addDays(-3), expiryDate:addDays(4),  note:'Suhu ruang' },
+    { id:5, name:'Wortel',        emoji:'🥕', category:'sayuran', days:14, addedDate:addDays(-4), expiryDate:addDays(10), note:'Crisper drawer kulkas' },
+    { id:6, name:'Telur Ayam',    emoji:'🥚', category:'telur',   days:21, addedDate:addDays(-7), expiryDate:addDays(14), note:'Rak tengah kulkas' },
+    { id:7, name:'Minyak Goreng', emoji:'🫙', category:'kering',  days:365,addedDate:addDays(-30),expiryDate:addDays(335),note:'Simpan tertutup' },
+    { id:8, name:'Beras',         emoji:'🍚', category:'kering',  days:180,addedDate:addDays(-14),expiryDate:addDays(166),note:'Kedap udara' },
+  ];
+}
+
+// ─── HELPERS ──────────────────────────────────────────
+function daysUntil(date){
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const target = new Date(date);
+  target.setHours(0,0,0,0);
+  return Math.round((target - now) / (1000*60*60*24));
+}
+
+function getStatus(days){
+  if (days <= 0) return { key:'urgent', badge:'HARI INI',   badgeClass:'badge-urgent', dot:'#E53935' };
+  if (days <= 1) return { key:'urgent', badge:'H-1',        badgeClass:'badge-urgent', dot:'#E53935' };
+  if (days <= 3) return { key:'warn',   badge:`H-${days}`,  badgeClass:'badge-warn',   dot:'#FB8C00' };
+  if (days <= 7) return { key:'soon',   badge:`${days} hari`,badgeClass:'badge-soon',  dot:'#FFC107' };
+  return               { key:'safe',   badge:`${days} hari`,badgeClass:'badge-safe',   dot:'#2E9E5B' };
+}
+
+function formatDaysText(days){
+  if (days < 0) return `Sudah lewat ${Math.abs(days)} hari`;
+  if (days === 0) return 'Hari ini!';
+  if (days === 1) return 'Besok';
+  return `${days} hari lagi`;
+}
+
+// Shelf life estimator
+function estimateShelfLife(name, categoryId){
+  const key = name.trim().toLowerCase();
+  if (!key) return null;
+
+  // Direct match
+  if (SHELF_LIFE_DB[key]) return { ...SHELF_LIFE_DB[key], matched:key, source:'exact' };
+
+  // Partial match
+  for (const dbKey of Object.keys(SHELF_LIFE_DB)){
+    if (key.includes(dbKey) || dbKey.includes(key)){
+      return { ...SHELF_LIFE_DB[dbKey], matched:dbKey, source:'partial' };
+    }
+  }
+
+  // Category fallback
+  const catDefaults = {
+    sayuran:  { days:5,   emoji:'🥬', note:'Simpan di kulkas' },
+    buah:     { days:7,   emoji:'🍎', note:'Simpan di suhu ruang atau kulkas' },
+    daging:   { days:2,   emoji:'🥩', note:'Segera masak atau bekukan' },
+    telur:    { days:21,  emoji:'🥚', note:'Simpan di kulkas' },
+    susu:     { days:7,   emoji:'🥛', note:'Cek tanggal di kemasan' },
+    bumbu:    { days:90,  emoji:'🧂', note:'Simpan tertutup' },
+    kering:   { days:180, emoji:'🍚', note:'Simpan kering & kedap udara' },
+    minuman:  { days:14,  emoji:'🧃', note:'Cek tanggal di kemasan' },
+    lain:     { days:7,   emoji:'🍱', note:'Perkiraan umum' },
+  };
+  if (categoryId && catDefaults[categoryId]){
+    return { ...catDefaults[categoryId], cat:categoryId, matched:null, source:'category' };
+  }
+  return null;
+}
+
+// ─── RENDER: HOME ─────────────────────────────────────
+function renderHome(){
+  const body = document.getElementById('home-body');
+  body.innerHTML = '';
+
+  // Sort by expiry ascending
+  const sorted = [...state.foods].sort((a,b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+
+  const groups = {
+    urgent: sorted.filter(f => daysUntil(f.expiryDate) <= 1),
+    warn:   sorted.filter(f => { const d = daysUntil(f.expiryDate); return d > 1 && d <= 3; }),
+    soon:   sorted.filter(f => { const d = daysUntil(f.expiryDate); return d > 3 && d <= 7; }),
+    safe:   sorted.filter(f => daysUntil(f.expiryDate) > 7),
+  };
+
+  if (state.foods.length === 0){
+    body.innerHTML = `<div class="empty"><div class="emo">🍽️</div>Belum ada bahan. Tap tombol + untuk menambah.</div>`;
+    updateStats();
+    return;
+  }
+
+  if (groups.urgent.length){
+    body.innerHTML += `
+      <div class="section-head">
+        <h2><span class="dot" style="background:#E53935"></span> Perlu segera dipakai</h2>
+        <span class="count">${groups.urgent.length}</span>
+      </div>
+      <div class="food-list">${groups.urgent.map(renderFoodItem).join('')}</div>
+    `;
+  }
+  if (groups.warn.length){
+    body.innerHTML += `
+      <div class="section-head">
+        <h2><span class="dot" style="background:#FB8C00"></span> Rencanakan menu</h2>
+        <span class="count">${groups.warn.length}</span>
+      </div>
+      <div class="food-list">${groups.warn.map(renderFoodItem).join('')}</div>
+    `;
+  }
+  if (groups.soon.length){
+    body.innerHTML += `
+      <div class="section-head">
+        <h2><span class="dot" style="background:#FFC107"></span> Perhatikan minggu ini</h2>
+        <span class="count">${groups.soon.length}</span>
+      </div>
+      <div class="food-list">${groups.soon.map(renderFoodItem).join('')}</div>
+    `;
+  }
+  if (groups.safe.length){
+    body.innerHTML += `
+      <div class="section-head">
+        <h2><span class="dot" style="background:#2E9E5B"></span> Stok aman</h2>
+        <span class="count">${groups.safe.length}</span>
+      </div>
+      <div class="food-list">${groups.safe.map(renderFoodItem).join('')}</div>
+    `;
+  }
+
+  updateStats();
+}
+
+function renderFoodItem(f){
+  const days = daysUntil(f.expiryDate);
+  const st = getStatus(days);
+  return `
+    <div class="food-item" onclick="showDetail(${f.id})">
+      <div class="food-emoji">${f.emoji}</div>
+      <div class="food-info">
+        <div class="food-name">${f.name}</div>
+        <div class="food-meta">${formatDaysText(days)}</div>
+      </div>
+      <div class="food-badge ${st.badgeClass}">${st.badge}</div>
+    </div>
+  `;
+}
+
+function updateStats(){
+  const today = state.foods.filter(f => daysUntil(f.expiryDate) <= 1).length;
+  const soon  = state.foods.filter(f => { const d = daysUntil(f.expiryDate); return d > 1 && d <= 3; }).length;
+  const safe  = state.foods.filter(f => daysUntil(f.expiryDate) > 7).length;
+  const total = state.foods.length;
+  document.getElementById('sum-today').textContent = today;
+  document.getElementById('sum-soon').textContent  = soon;
+  document.getElementById('sum-total').textContent = total;
+  document.getElementById('bell-badge').textContent = today + soon;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-today').textContent = today;
+  document.getElementById('stat-soon').textContent  = soon;
+  document.getElementById('stat-safe').textContent  = safe;
+}
+
+// ─── DETAIL MODAL ─────────────────────────────────────
+let currentDetailId = null;
+function showDetail(id){
+  const f = state.foods.find(x => x.id === id);
+  if (!f) return;
+  currentDetailId = id;
+  const days = daysUntil(f.expiryDate);
+  const cat = CATEGORIES.find(c => c.id === f.category);
+  document.getElementById('detail-em').textContent = f.emoji;
+  document.getElementById('detail-name').textContent = f.name;
+  document.getElementById('detail-meta').textContent = formatDaysText(days) + (f.note ? ' · ' + f.note : '');
+  document.getElementById('detail-cat').textContent = cat ? cat.label : '—';
+  document.getElementById('detail-qty').textContent = f.qty || '1 pcs';
+  document.getElementById('detail-added').textContent = new Intl.DateTimeFormat('id-ID', { day:'numeric', month:'short' }).format(f.addedDate);
+  document.getElementById('detail-modal').classList.add('show');
+}
+function closeDetail(e){
+  if (e.target.id === 'detail-modal'){
+    document.getElementById('detail-modal').classList.remove('show');
+  }
+}
+function removeFood(action){
+  const removed = state.foods.find(f => f.id === currentDetailId);
+  state.foods = state.foods.filter(f => f.id !== currentDetailId);
+  document.getElementById('detail-modal').classList.remove('show');
+
+  // Track "saved" — if bahan dipakai sebelum kadaluarsa
+  if (action === 'used' && removed){
+    const days = Math.round((new Date(removed.expiryDate) - new Date()) / (1000*60*60*24));
+    if (days >= 0){
+      state.savedCount = (state.savedCount || 0) + 1;
+    }
+  }
+
+  renderHome();
+  renderNotifs();
+  persist();
+  syncFoodsToServer();
+  showToast(action === 'used' ? 'Bagus! Bahan diselamatkan 🎉' : 'Bahan dibuang');
+}
+
+// ─── RECIPE MODAL ─────────────────────────────────────
+function openRecipes(foodNames){
+  // Close detail modal if open
+  document.getElementById('detail-modal').classList.remove('show');
+
+  const cleanNames = foodNames
+    .filter(n => n && typeof n === 'string')
+    .map(n => n.trim().toLowerCase());
+
+  const recipes = findRecipes(cleanNames);
+  renderRecipeList(recipes, cleanNames);
+  document.getElementById('recipe-modal').classList.add('show');
+}
+
+function renderRecipeList(recipes, sourceNames){
+  const content = document.getElementById('recipe-modal-content');
+
+  if (recipes.length === 0){
+    content.innerHTML = `
+      <h3><span class="em">🍽️</span>Belum ada resep yang cocok</h3>
+      <div class="meta">Coba tambahkan bahan seperti bayam, wortel, tahu, atau telur untuk melihat rekomendasi resep.</div>
+    `;
+    return;
+  }
+
+  const sourceLabel = sourceNames.length === 1
+    ? `bahan <strong>${sourceNames[0]}</strong>`
+    : `${sourceNames.length} bahan yang akan kadaluarsa`;
+
+  content.innerHTML = `
+    <h3><span class="em">🍽️</span>Resep untuk kamu</h3>
+    <div class="meta">${recipes.length} rekomendasi resep dari ${sourceLabel}</div>
+    <div class="recipe-list">
+      ${recipes.map(r => `
+        <div class="recipe-card" onclick="viewRecipe('${r.id}')">
+          <div class="recipe-card-head">
+            <div class="recipe-emo">${r.emoji}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="recipe-title">${r.title}</div>
+              <div class="recipe-meta">
+                <span>⏱ ${r.time}</span>
+                <span>📊 ${r.difficulty}</span>
+              </div>
+            </div>
+          </div>
+          <div class="recipe-uses">Pakai: ${r.keywords.slice(0, 3).join(', ')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function viewRecipe(recipeId){
+  const recipe = RECIPES_DB.find(r => r.id === recipeId);
+  if (!recipe) return;
+
+  const content = document.getElementById('recipe-modal-content');
+  content.innerHTML = `
+    <button class="recipe-back" onclick="backToRecipeList()">← Kembali ke daftar</button>
+    <div class="recipe-detail">
+      <div class="recipe-hero">
+        <div class="emo">${recipe.emoji}</div>
+        <div class="title">${recipe.title}</div>
+        <div class="meta">
+          <span>⏱ ${recipe.time}</span>
+          <span>📊 ${recipe.difficulty}</span>
+        </div>
+      </div>
+      <div class="recipe-section">
+        <h4>Bahan-bahan</h4>
+        <ul class="recipe-ingredients">
+          ${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="recipe-section">
+        <h4>Cara Membuat</h4>
+        <ol class="recipe-steps">
+          ${recipe.steps.map(s => `<li>${s}</li>`).join('')}
+        </ol>
+      </div>
+    </div>
+  `;
+}
+
+// Keep track of what to return to
+let _lastRecipeContext = null;
+function backToRecipeList(){
+  if (_lastRecipeContext){
+    renderRecipeList(_lastRecipeContext.recipes, _lastRecipeContext.sources);
+  }
+}
+
+// Wrap openRecipes to remember context
+const _originalOpenRecipes = openRecipes;
+openRecipes = function(foodNames){
+  const cleanNames = foodNames
+    .filter(n => n && typeof n === 'string')
+    .map(n => n.trim().toLowerCase());
+  const recipes = findRecipes(cleanNames);
+  _lastRecipeContext = { recipes, sources: cleanNames };
+
+  document.getElementById('detail-modal').classList.remove('show');
+  renderRecipeList(recipes, cleanNames);
+  document.getElementById('recipe-modal').classList.add('show');
+};
+
+function closeRecipe(e){
+  if (e.target.id === 'recipe-modal'){
+    document.getElementById('recipe-modal').classList.remove('show');
+  }
+}
+
+// ─── INPUT SCREEN ─────────────────────────────────────
+function renderCategories(){
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = CATEGORIES.map(c => `
+    <button class="cat-chip" data-cat="${c.id}" onclick="selectCategory('${c.id}')">
+      <span class="emoji">${c.emoji}</span>
+      <span>${c.label}</span>
+    </button>
+  `).join('');
+}
+
+function selectCategory(id){
+  state.input.category = id;
+  document.querySelectorAll('.cat-chip').forEach(el => {
+    el.classList.toggle('selected', el.dataset.cat === id);
+  });
+  triggerEstimate();
+  updateSaveButton();
+}
+
+function triggerEstimate(){
+  const name = document.getElementById('input-name').value;
+  const container = document.getElementById('estimate-container');
+  state.input.name = name;
+
+  if (!state.input.category){
+    container.innerHTML = '';
+    state.input.estimate = null;
+    return;
+  }
+
+  const est = estimateShelfLife(name, state.input.category);
+  state.input.estimate = est;
+
+  if (!est){
+    container.innerHTML = '';
+    return;
+  }
+
+  const displayName = name.trim() || CATEGORIES.find(c => c.id === state.input.category).label.toLowerCase();
+  const daysText = est.days >= 60 ? `${Math.round(est.days/30)} bulan` :
+                   est.days >= 14 ? `${Math.round(est.days/7)} minggu` :
+                   `${est.days} hari`;
+
+  const altOpt = est.days <= 3 ? '5 hari' : est.days <= 7 ? '2 minggu' : '1 bulan';
+
+  // For non-organic categories, suggest using printed expiration date
+  const category = CATEGORIES.find(c => c.id === state.input.category);
+  const showDatePref = category && !category.organic;
+
+  container.innerHTML = `
+    <div class="field-label">Estimasi Masa Segar${showDatePref ? '<div class="field-hint">Ada tanggal kadaluarsa di kemasan? Pakai opsi "Tanggal expired" ↓</div>' : ''}</div>
+    <div class="estimate-card">
+      <div class="estimate-eyebrow">Estimasi otomatis</div>
+      <div class="estimate-desc"><strong>${displayName}</strong> biasanya segar selama:</div>
+      <div class="estimate-value">${daysText}</div>
+      <div class="estimate-note">${est.note}</div>
+    </div>
+    <div class="shelf-options">
+      <button class="shelf-chip ${!showDatePref ? 'selected' : ''}" data-choice="auto" onclick="chooseShelf('auto')">
+        <span class="mini-badge">AUTO</span>
+        ${daysText} ${!showDatePref ? '✓' : ''}
+      </button>
+      <button class="shelf-chip" data-choice="alt" onclick="chooseShelf('alt', '${altOpt}')">${altOpt}</button>
+      <button class="shelf-chip ${showDatePref ? 'selected' : ''}" data-choice="custom" onclick="chooseShelf('custom')">
+        ${showDatePref ? '📅 Tanggal expired' : 'Atur sendiri'}
+      </button>
+    </div>
+    <div class="custom-picker ${showDatePref ? 'visible' : ''}" id="custom-picker">
+      <div class="picker-mode-toggle">
+        <button type="button" class="picker-mode-btn ${showDatePref ? 'active' : ''}" data-mode="date" onclick="switchPickerMode('date')">📅 Pilih tanggal</button>
+        <button type="button" class="picker-mode-btn ${!showDatePref ? 'active' : ''}" data-mode="days" onclick="switchPickerMode('days')">🔢 Berapa hari</button>
+      </div>
+      <div class="picker-row" id="picker-date-row" style="display:${showDatePref ? 'flex' : 'none'};">
+        <label>Kadaluarsa:</label>
+        <input type="date" id="custom-date" min="${todayISO()}" value="${defaultDateISO(est.days)}" oninput="updateSaveButton()">
+      </div>
+      <div class="picker-row" id="picker-days-row" style="display:${showDatePref ? 'none' : 'flex'};">
+        <label>Berapa hari?</label>
+        <input type="number" id="custom-days" placeholder="cth: 4" min="1" max="365" oninput="updateSaveButton()">
+      </div>
+      <div class="picker-hint">${showDatePref ? 'Cek tanggal di kemasan produk, lalu pilih di kalender.' : 'Masukkan estimasi berdasarkan kondisi bahan saat ini.'}</div>
+    </div>
+  `;
+  state.input.shelfChoice = showDatePref ? 'custom' : 'auto';
+  state.input.pickerMode = showDatePref ? 'date' : 'days';
+  state.input.customDays = null;
+  updateSaveButton();
+}
+
+function todayISO(){
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function defaultDateISO(days){
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function switchPickerMode(mode){
+  state.input.pickerMode = mode;
+  document.querySelectorAll('.picker-mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  document.getElementById('picker-date-row').style.display = (mode === 'date') ? 'flex' : 'none';
+  document.getElementById('picker-days-row').style.display = (mode === 'days') ? 'flex' : 'none';
+  updateSaveButton();
+}
+
+function chooseShelf(choice, altText){
+  state.input.shelfChoice = choice;
+  document.querySelectorAll('.shelf-chip').forEach(el => {
+    el.classList.toggle('selected', el.dataset.choice === choice);
+  });
+  const picker = document.getElementById('custom-picker');
+  if (picker) picker.classList.toggle('visible', choice === 'custom');
+
+  if (choice === 'alt' && altText){
+    const m = altText.match(/(\d+)\s*(hari|minggu|bulan)/);
+    if (m){
+      const n = parseInt(m[1]);
+      const unit = m[2];
+      state.input.customDays = unit === 'bulan' ? n*30 : unit === 'minggu' ? n*7 : n;
+    }
+  }
+  updateSaveButton();
+}
+
+function updateSaveButton(){
+  const btn = document.getElementById('save-btn');
+  const hasCategory = !!state.input.category;
+  const hasName = document.getElementById('input-name').value.trim().length > 0;
+
+  let hasShelf = state.input.estimate !== null;
+  if (state.input.shelfChoice === 'custom'){
+    if (state.input.pickerMode === 'date'){
+      const dateEl = document.getElementById('custom-date');
+      hasShelf = !!(dateEl && dateEl.value);
+    } else {
+      const daysEl = document.getElementById('custom-days');
+      hasShelf = !!(daysEl && parseInt(daysEl.value) > 0);
+    }
+  }
+  btn.disabled = !(hasCategory && hasName && hasShelf);
+}
+
+function saveItem(){
+  const name = document.getElementById('input-name').value.trim();
+  const qty = document.getElementById('input-qty').value.trim() || '1 pcs';
+  const est = state.input.estimate;
+
+  const today = new Date();
+  let days = est.days;
+  let expiry;
+
+  if (state.input.shelfChoice === 'custom'){
+    if (state.input.pickerMode === 'date'){
+      const dateVal = document.getElementById('custom-date').value;
+      expiry = new Date(dateVal);
+      days = Math.round((expiry - today) / (1000*60*60*24));
+    } else {
+      const c = parseInt(document.getElementById('custom-days').value);
+      if (c > 0) days = c;
+      expiry = new Date(today);
+      expiry.setDate(expiry.getDate() + days);
+    }
+  } else if (state.input.shelfChoice === 'alt' && state.input.customDays){
+    days = state.input.customDays;
+    expiry = new Date(today);
+    expiry.setDate(expiry.getDate() + days);
+  } else {
+    expiry = new Date(today);
+    expiry.setDate(expiry.getDate() + days);
+  }
+
+  const newItem = {
+    id: Date.now(),
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    emoji: est.emoji || CATEGORIES.find(c => c.id === state.input.category).emoji,
+    category: state.input.category,
+    days,
+    qty,
+    addedDate: today,
+    expiryDate: expiry,
+    note: est.note,
+  };
+  state.foods.push(newItem);
+
+  // Reset
+  state.input = { category:null, name:'', shelfChoice:'auto', pickerMode:'days', customDays:null, estimate:null };
+  document.getElementById('input-name').value = '';
+  document.getElementById('input-qty').value = '1 pcs';
+  document.getElementById('estimate-container').innerHTML = '';
+  document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('selected'));
+  updateSaveButton();
+
+  persist();
+  syncFoodsToServer();
+  showToast(`${newItem.name} berhasil ditambahkan!`);
+  renderHome();
+  renderNotifs();
+  showScreen('home');
+}
+
+// ─── NOTIFIKASI SCREEN ────────────────────────────────
+function renderNotifs(){
+  const list = document.getElementById('notif-list');
+  const urgentFoods = state.foods.filter(f => daysUntil(f.expiryDate) <= 1);
+  const warnFoods = state.foods.filter(f => { const d = daysUntil(f.expiryDate); return d > 1 && d <= 3; });
+
+  let html = '';
+  if (urgentFoods.length){
+    const items = urgentFoods.map(f => f.name).join(', ');
+    const urgentNames = JSON.stringify(urgentFoods.map(f => f.name));
+    html += `
+      <div class="notif-card urgent">
+        <div class="notif-head">
+          <div class="app"><img src="icons/icon-72.png" alt="" style="width:16px;height:16px;border-radius:4px;"> Smart Food Reminder</div>
+          <span class="time">baru saja</span>
+        </div>
+        <div class="notif-title">⚠️ Kadaluarsa hari ini!</div>
+        <div class="notif-body">${items} perlu segera dipakai atau dibuang.</div>
+        <div class="notif-actions">
+          <button class="btn-primary-urgent" onclick='openRecipes(${urgentNames})'>🍽️ Lihat resep</button>
+          <button class="btn-secondary" onclick="showScreen('home')">Lihat detail</button>
+        </div>
+      </div>
+    `;
+  }
+  if (warnFoods.length){
+    const items = warnFoods.map(f => f.name).join(', ');
+    const warnNames = JSON.stringify(warnFoods.map(f => f.name));
+    html += `
+      <div class="notif-card warn">
+        <div class="notif-head">
+          <div class="app"><img src="icons/icon-72.png" alt="" style="width:16px;height:16px;border-radius:4px;"> Smart Food Reminder</div>
+          <span class="time">2 mnt lalu</span>
+        </div>
+        <div class="notif-title">🟡 Kadaluarsa dalam 2-3 hari</div>
+        <div class="notif-body">${items} — cek resep yang cocok!</div>
+        <div class="notif-actions">
+          <button class="btn-primary-warn" onclick='openRecipes(${warnNames})'>🍽️ Lihat resep</button>
+          <button class="btn-secondary" onclick="showScreen('home')">Lihat detail</button>
+        </div>
+      </div>
+    `;
+  }
+  if (!html){
+    html = `<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.6);font-size:13px;">
+      <div style="font-size:36px;margin-bottom:8px;">🎉</div>
+      Tidak ada pengingat kadaluarsa saat ini.
+    </div>`;
+  }
+  list.innerHTML = html;
+}
+
+// ─── NAVIGATION ───────────────────────────────────────
+const MAIN_APP_SCREENS = ['home', 'input', 'notif', 'profile'];
+const AUTH_SCREENS = ['splash', 'setup'];
+
+function showScreen(screenId){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screenId).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.screen === screenId);
+  });
+
+  // Hide status bar for splash screen (immersive)
+  const statusBar = document.getElementById('status-bar');
+  if (statusBar){
+    statusBar.style.display = (screenId === 'splash') ? 'none' : 'flex';
+  }
+
+  // Show bottom nav only on main app screens
+  const bottomNav = document.getElementById('bottom-nav');
+  if (bottomNav){
+    const isMain = MAIN_APP_SCREENS.includes(screenId);
+    bottomNav.style.display = isMain ? 'flex' : 'none';
+
+    // Highlight active bottom nav item
+    document.querySelectorAll('#bottom-nav .nav-item').forEach(item => {
+      item.classList.toggle('active', item.dataset.nav === screenId);
+    });
+  }
+
+  if (screenId === 'notif'){ renderNotifs(); renderNotifSettings(); }
+  if (screenId === 'home') renderHome();
+  if (screenId === 'profile') renderProfile();
+  if (screenId === 'setup'){
+    setTimeout(() => document.getElementById('setup-name-input').focus(), 100);
+  }
+}
+
+// ─── PROFILE ──────────────────────────────────────────
+function renderProfile(){
+  const name = state.userName || 'Pengguna';
+  document.getElementById('profile-name').textContent = 'Bu ' + name;
+  document.getElementById('profile-initial').textContent = name.charAt(0).toUpperCase();
+
+  // Stats
+  document.getElementById('pstat-total').textContent = state.foods.length;
+  document.getElementById('pstat-saved').textContent = state.savedCount || 0;
+
+  // Days since joining (mock: from state.joinDate or default 7)
+  if (!state.joinDate) state.joinDate = new Date();
+  const daysJoined = Math.max(1, Math.floor((new Date() - state.joinDate) / (1000*60*60*24)) + 7);
+  document.getElementById('pstat-days').textContent = daysJoined;
+}
+
+// ─── EDIT NAME ────────────────────────────────────────
+function openEditName(){
+  const input = document.getElementById('editname-input');
+  input.value = state.userName || '';
+  document.getElementById('editname-modal').classList.add('show');
+  setTimeout(() => input.focus(), 100);
+}
+function closeEditName(e){
+  if (e && e.target && e.target.id !== 'editname-modal') return;
+  document.getElementById('editname-modal').classList.remove('show');
+}
+function saveEditName(){
+  const newName = document.getElementById('editname-input').value.trim();
+  if (newName.length === 0){
+    showToast('Nama tidak boleh kosong');
+    return;
+  }
+  state.userName = newName;
+  document.getElementById('home-user-name').textContent = 'Bu ' + newName;
+  persist();
+  syncFoodsToServer();
+  renderProfile();
+  document.getElementById('editname-modal').classList.remove('show');
+  showToast('Nama berhasil diperbarui ✓');
+}
+
+function doLogout(){
+  if (!confirm('Keluar dari akun?')) return;
+  if (state.pushEnabled) disablePush();
+  state.userName = '';
+  state.savedCount = 0;
+  state.joinDate = null;
+  state.foods = [];
+  clearPersist();
+  renderHome();
+  renderNotifs();
+  showToast('Sampai jumpa lagi 👋');
+  setTimeout(() => showScreen('splash'), 500);
+}
+
+// ─── ONBOARDING (name only, no phone/OTP) ─────────────
+function updateSetupPreview(){
+  const name = document.getElementById('setup-name-input').value.trim();
+  const preview = document.getElementById('setup-preview');
+  const btn = document.getElementById('setup-btn');
+  if (name.length === 0){
+    preview.innerHTML = 'Nama akan muncul di sini';
+    btn.disabled = true;
+  } else {
+    preview.innerHTML = `Halo, <strong>Bu ${name}</strong> 👋<br>Selamat datang di Smart Food Reminder!`;
+    btn.disabled = false;
+  }
+}
+function completeSetup(){
+  const name = document.getElementById('setup-name-input').value.trim();
+  state.userName = name;
+  document.getElementById('home-user-name').textContent = 'Bu ' + name;
+  if (!state.joinDate) state.joinDate = new Date();
+  persist();
+  showToast(`Selamat datang, Bu ${name}!`);
+  setTimeout(() => showScreen('home'), 600);
+}
+
+// ─── TOAST ────────────────────────────────────────────
+function showToast(text){
+  document.getElementById('toast-text').textContent = text;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ─── CLOCK ────────────────────────────────────────────
+function updateClock(){
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', hour12:false });
+  const dateStr = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long' });
+  const lockTime = document.getElementById('lock-time');
+  const lockDate = document.getElementById('lock-date');
+  const statusTime = document.querySelector('.status-bar .time');
+  if (lockTime) lockTime.textContent = timeStr;
+  if (lockDate) lockDate.textContent = dateStr;
+  if (statusTime) statusTime.textContent = timeStr.replace(/^0/,'');
+}
+
+// ─── PERSISTENCE (localStorage) ───────────────────────
+const STORAGE_KEY = 'sfr-state-v1';
+
+function persist(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      userName: state.userName,
+      savedCount: state.savedCount,
+      joinDate: state.joinDate,
+      pushEnabled: state.pushEnabled,
+      notifyH1: state.notifyH1,
+      notifyH3: state.notifyH3,
+      foods: state.foods,
+    }));
+  } catch(e) { /* storage unavailable — degrade gracefully */ }
+}
+
+function restore(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    state.userName = d.userName || '';
+    state.savedCount = d.savedCount || 0;
+    state.joinDate = d.joinDate ? new Date(d.joinDate) : null;
+    state.pushEnabled = d.pushEnabled || false;
+    state.notifyH1 = d.notifyH1 !== undefined ? d.notifyH1 : true;
+    state.notifyH3 = d.notifyH3 !== undefined ? d.notifyH3 : true;
+    state.foods = (d.foods || []).map(f => ({
+      ...f,
+      addedDate: new Date(f.addedDate),
+      expiryDate: new Date(f.expiryDate),
+    }));
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearPersist(){
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
+
+// ─── PUSH NOTIFICATIONS (real, via backend) ───────────
+const VAPID_PUBLIC_KEY = 'BMWZfaFdkgbsRwM5FrIzMm4U-R6V0HW1Vqfy-F8EqSDq-jHi5jjKWR-UnMpbsShXQZIReMO6Vy-4w69kAXXni_o';
+const PUSH_ENDPOINT_KEY = 'sfr-push-endpoint';
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+function pushSupported(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+async function getExistingSubscription(){
+  if (!pushSupported()) return null;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    return await reg.pushManager.getSubscription();
+  } catch(e) { return null; }
+}
+
+async function enablePush(){
+  if (!pushSupported()){
+    // Deteksi iOS Safari yang belum di-Add to Home Screen
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    if (isIOS && !isStandalone){
+      showToast('Di iPhone: buka lewat ikon Home Screen dulu, bukan Safari');
+    } else {
+      showToast('Browser ini belum mendukung notifikasi push');
+    }
+    return false;
+  }
+  if (Notification.permission === 'denied'){
+    showToast('Notifikasi diblokir — aktifkan lewat pengaturan HP');
+    return false;
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted'){
+    showToast('Izin notifikasi tidak diberikan');
+    return false;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+    const subJson = sub.toJSON();
+
+    const resp = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subscription: subJson,
+        userName: state.userName,
+        foods: state.foods,
+        notifyH1: state.notifyH1,
+        notifyH3: state.notifyH3,
+      }),
+    });
+
+    if (!resp.ok){
+      // Subscription browser berhasil tapi server nolak — kemungkinan
+      // backend/env belum siap. Beri tahu user apa adanya.
+      throw new Error('Server responded ' + resp.status);
+    }
+
+    localStorage.setItem(PUSH_ENDPOINT_KEY, subJson.endpoint);
+    state.pushEnabled = true;
+    persist();
+    showToast('Notifikasi aktif ✓ Kamu akan diingatkan otomatis');
+    return true;
+  } catch(e){
+    console.error('enablePush failed:', e);
+    showToast('Gagal menyimpan ke server — cek koneksi/backend');
+    return false;
+  }
+}
+
+async function disablePush(){
+  try {
+    const sub = await getExistingSubscription();
+    if (sub){
+      await fetch('/api/unsubscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+      });
+      await sub.unsubscribe();
+    }
+  } catch(e){ console.error('disablePush error:', e); }
+
+  localStorage.removeItem(PUSH_ENDPOINT_KEY);
+  state.pushEnabled = false;
+  persist();
+  showToast('Notifikasi dimatikan');
+}
+
+async function togglePush(){
+  if (state.pushEnabled){
+    await disablePush();
+  } else {
+    await enablePush();
+  }
+  renderNotifSettings();
+}
+
+function toggleNotifPref(prefKey){
+  state[prefKey] = !state[prefKey];
+  persist();
+  renderNotifSettings();
+  syncFoodsToServer();
+}
+
+async function syncFoodsToServer(){
+  if (!state.pushEnabled) return;
+  const endpoint = localStorage.getItem(PUSH_ENDPOINT_KEY);
+  if (!endpoint) return;
+  try {
+    await fetch('/api/sync-foods', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endpoint,
+        foods: state.foods,
+        notifyH1: state.notifyH1,
+        notifyH3: state.notifyH3,
+      }),
+    });
+  } catch(e){ console.error('syncFoodsToServer failed:', e); }
+}
+
+function renderNotifSettings(){
+  const banner = document.getElementById('push-status-banner');
+  const icon = document.getElementById('push-status-icon');
+  const title = document.getElementById('push-status-title');
+  const sub = document.getElementById('push-status-sub');
+  const pushToggle = document.getElementById('push-toggle');
+  const h1Toggle = document.getElementById('h1-toggle');
+  const h3Toggle = document.getElementById('h3-toggle');
+
+  if (!banner) return;
+
+  if (!pushSupported()){
+    banner.classList.remove('active');
+    icon.textContent = '🚫';
+    title.textContent = 'Tidak didukung di browser ini';
+    sub.textContent = 'Coba buka lewat Chrome/Edge di Android, atau Safari di iOS 16.4+';
+  } else if (state.pushEnabled){
+    banner.classList.add('active');
+    icon.textContent = '🔔';
+    title.textContent = 'Notifikasi aktif';
+    sub.textContent = 'Kamu akan diingatkan otomatis meski aplikasi tertutup';
+  } else {
+    banner.classList.remove('active');
+    icon.textContent = '🔕';
+    title.textContent = 'Notifikasi belum aktif';
+    sub.textContent = 'Aktifkan supaya diingatkan otomatis meski aplikasi tertutup';
+  }
+
+  if (pushToggle) pushToggle.classList.toggle('on', state.pushEnabled);
+  if (h1Toggle) h1Toggle.classList.toggle('on', state.notifyH1);
+  if (h3Toggle) h3Toggle.classList.toggle('on', state.notifyH3);
+}
+
+// ─── INIT ─────────────────────────────────────────────
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => showScreen(tab.dataset.screen));
+});
+document.getElementById('input-name').addEventListener('input', () => {
+  triggerEstimate();
+  updateSaveButton();
+});
+
+// Restore saved session (kalau user baru/belum pernah pakai, foods tetap [])
+const hasSession = restore();
+
+renderCategories();
+renderHome();
+renderNotifs();
+updateClock();
+setInterval(updateClock, 30000);
+
+// Returning user with a name skips onboarding → straight to Home
+if (hasSession && state.userName){
+  document.getElementById('home-user-name').textContent = 'Bu ' + state.userName;
+  showScreen('home');
+} else {
+  document.getElementById('status-bar').style.display = 'none';
+}
+
+// ─── SERVICE WORKER ───────────────────────────────────
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => {
+        // Sinkronkan status toggle dengan subscription asli di browser —
+        // penting kalau user pernah revoke izin lewat pengaturan browser.
+        return getExistingSubscription();
+      })
+      .then((sub) => {
+        state.pushEnabled = !!sub;
+        if (sub) localStorage.setItem(PUSH_ENDPOINT_KEY, sub.endpoint);
+        renderNotifSettings();
+      })
+      .catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>

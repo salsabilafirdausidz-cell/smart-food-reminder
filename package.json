@@ -1,0 +1,10 @@
+{
+  "name": "smart-food-reminder-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend API untuk push notification Smart Food Reminder",
+  "dependencies": {
+    "web-push": "^3.6.7",
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
