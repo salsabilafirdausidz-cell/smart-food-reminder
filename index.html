@@ -1382,12 +1382,16 @@
     border:1px solid rgba(255,255,255,0.1);
     border-radius:12px;
     padding:12px;
-    margin-bottom:14px;
+    margin-bottom:10px;
     transition:all 0.2s;
   }
   .push-status-banner.active{
     background:rgba(46,158,91,0.15);
     border-color:rgba(46,158,91,0.4);
+  }
+  .push-status-banner.error{
+    background:rgba(229,57,53,0.15);
+    border-color:rgba(229,57,53,0.4);
   }
   .push-status-icon{
     font-size:22px;
@@ -1407,6 +1411,33 @@
     font-size:10.5px;
     color:rgba(255,255,255,0.6);
     line-height:1.3;
+  }
+  .push-retry-btn{
+    width:100%;
+    padding:11px;
+    background:var(--amber);
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .push-retry-btn:active{transform:scale(0.98);}
+  .push-disable-link{
+    display:block;
+    width:100%;
+    text-align:center;
+    background:none;
+    border:none;
+    color:rgba(255,255,255,0.5);
+    font-family:inherit;
+    font-size:11px;
+    padding:4px 0 14px;
+    cursor:pointer;
+    text-decoration:underline;
   }
   .notif-settings h3{
     font-size:12px;
@@ -2014,16 +2045,14 @@
               <div class="push-status-banner" id="push-status-banner">
                 <div class="push-status-icon" id="push-status-icon">🔕</div>
                 <div class="push-status-text">
-                  <div class="push-status-title" id="push-status-title">Notifikasi belum aktif</div>
-                  <div class="push-status-sub" id="push-status-sub">Aktifkan supaya diingatkan otomatis meski aplikasi tertutup</div>
+                  <div class="push-status-title" id="push-status-title">Menyiapkan notifikasi…</div>
+                  <div class="push-status-sub" id="push-status-sub">Mohon tunggu sebentar</div>
                 </div>
               </div>
+              <button class="push-retry-btn" id="push-retry-btn" onclick="enablePush()" style="display:none;">🔔 Aktifkan Notifikasi</button>
+              <button class="push-disable-link" id="push-disable-link" onclick="disablePush()" style="display:none;">Matikan notifikasi</button>
 
-              <h3>⚙️ Pengaturan Pengingat</h3>
-              <div class="toggle-row">
-                <span>🔔 Notifikasi Push</span>
-                <button class="toggle" id="push-toggle" onclick="togglePush()"></button>
-              </div>
+              <h3>⚙️ Waktu Pengingat</h3>
               <div class="toggle-row">
                 <span>H-3 (3 hari sebelum)</span>
                 <button class="toggle" id="h3-toggle" onclick="toggleNotifPref('notifyH3')"></button>
@@ -2389,6 +2418,7 @@ let state = {
   savedCount: 0,
   joinDate: null,
   pushEnabled: false,
+  pushPromptShown: false,
   notifyH1: true,
   notifyH3: true,
   foods: [], // {id, name, emoji, category, days, addedDate, expiryDate, note}
@@ -2549,14 +2579,31 @@ function updateStats(){
   const soon  = state.foods.filter(f => { const d = daysUntil(f.expiryDate); return d > 1 && d <= 3; }).length;
   const safe  = state.foods.filter(f => daysUntil(f.expiryDate) > 7).length;
   const total = state.foods.length;
+  const urgentCount = today + soon;
   document.getElementById('sum-today').textContent = today;
   document.getElementById('sum-soon').textContent  = soon;
   document.getElementById('sum-total').textContent = total;
-  document.getElementById('bell-badge').textContent = today + soon;
+  document.getElementById('bell-badge').textContent = urgentCount;
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-today').textContent = today;
   document.getElementById('stat-soon').textContent  = soon;
   document.getElementById('stat-safe').textContent  = safe;
+  updateAppBadge(urgentCount);
+}
+
+// ─── APP BADGE (angka di ikon Home Screen) ────────────
+// Beda dari push notification — ini bekerja langsung dari
+// sisi aplikasi tanpa perlu server, jadi jauh lebih andal.
+// Didukung: Android Chrome/Edge, iOS 16.4+ (PWA ter-install), Desktop Chrome/Edge.
+function updateAppBadge(count){
+  if (!('setAppBadge' in navigator)) return; // browser tidak dukung, diamkan saja
+  try {
+    if (count > 0){
+      navigator.setAppBadge(count).catch(() => {});
+    } else {
+      navigator.clearAppBadge().catch(() => {});
+    }
+  } catch(e){ /* abaikan, fitur opsional */ }
 }
 
 // ─── DETAIL MODAL ─────────────────────────────────────
@@ -3084,6 +3131,9 @@ function completeSetup(){
   persist();
   showToast(`Selamat datang, Bu ${name}!`);
   setTimeout(() => showScreen('home'), 600);
+  // Otomatis minta izin notifikasi — user tidak perlu cari toggle manual.
+  // Delay supaya tidak nabrak transisi layar & tidak terkesan mendadak.
+  setTimeout(() => { if (!state.pushEnabled) enablePush(); }, 1800);
 }
 
 // ─── TOAST ────────────────────────────────────────────
@@ -3117,6 +3167,7 @@ function persist(){
       savedCount: state.savedCount,
       joinDate: state.joinDate,
       pushEnabled: state.pushEnabled,
+      pushPromptShown: state.pushPromptShown,
       notifyH1: state.notifyH1,
       notifyH3: state.notifyH3,
       foods: state.foods,
@@ -3133,6 +3184,7 @@ function restore(){
     state.savedCount = d.savedCount || 0;
     state.joinDate = d.joinDate ? new Date(d.joinDate) : null;
     state.pushEnabled = d.pushEnabled || false;
+    state.pushPromptShown = d.pushPromptShown || false;
     state.notifyH1 = d.notifyH1 !== undefined ? d.notifyH1 : true;
     state.notifyH3 = d.notifyH3 !== undefined ? d.notifyH3 : true;
     state.foods = (d.foods || []).map(f => ({
@@ -3173,27 +3225,38 @@ async function getExistingSubscription(){
   } catch(e) { return null; }
 }
 
+// Status terakhir push, dipakai renderNotifSettings() supaya pesan
+// (termasuk pesan error) MENETAP di layar, tidak hilang seperti toast.
+let pushStatus = { state: 'idle', message: '' }; // state: idle|checking|active|error|unsupported|denied
+
 async function enablePush(){
+  pushStatus = { state: 'checking', message: 'Menyiapkan notifikasi…' };
+  renderNotifSettings();
+
   if (!pushSupported()){
-    // Deteksi iOS Safari yang belum di-Add to Home Screen
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone === true ||
       window.matchMedia('(display-mode: standalone)').matches;
     if (isIOS && !isStandalone){
-      showToast('Di iPhone: buka lewat ikon Home Screen dulu, bukan Safari');
+      pushStatus = { state: 'unsupported', message: 'Di iPhone: buka lewat ikon Home Screen dulu, bukan tab Safari biasa.' };
     } else {
-      showToast('Browser ini belum mendukung notifikasi push');
+      pushStatus = { state: 'unsupported', message: 'Browser ini belum mendukung notifikasi push. Coba Chrome/Edge terbaru.' };
     }
+    renderNotifSettings();
     return false;
   }
   if (Notification.permission === 'denied'){
-    showToast('Notifikasi diblokir — aktifkan lewat pengaturan HP');
+    pushStatus = { state: 'denied', message: 'Notifikasi diblokir di pengaturan HP. Aktifkan manual lewat Settings.' };
+    renderNotifSettings();
     return false;
   }
 
   const permission = await Notification.requestPermission();
+  state.pushPromptShown = true;
+  persist();
   if (permission !== 'granted'){
-    showToast('Izin notifikasi tidak diberikan');
+    pushStatus = { state: 'error', message: 'Izin notifikasi tidak diberikan. Tap "Aktifkan Notifikasi" untuk coba lagi.' };
+    renderNotifSettings();
     return false;
   }
 
@@ -3221,19 +3284,20 @@ async function enablePush(){
     });
 
     if (!resp.ok){
-      // Subscription browser berhasil tapi server nolak — kemungkinan
-      // backend/env belum siap. Beri tahu user apa adanya.
       throw new Error('Server responded ' + resp.status);
     }
 
     localStorage.setItem(PUSH_ENDPOINT_KEY, subJson.endpoint);
     state.pushEnabled = true;
+    state.pushPromptShown = true;
     persist();
-    showToast('Notifikasi aktif ✓ Kamu akan diingatkan otomatis');
+    pushStatus = { state: 'active', message: '' };
+    renderNotifSettings();
     return true;
   } catch(e){
     console.error('enablePush failed:', e);
-    showToast('Gagal menyimpan ke server — cek koneksi/backend');
+    pushStatus = { state: 'error', message: 'Gagal terhubung ke server (kode: ' + (e.message || 'unknown') + '). Cek koneksi internet atau konfigurasi backend, lalu tap tombol untuk coba lagi.' };
+    renderNotifSettings();
     return false;
   }
 }
@@ -3254,16 +3318,9 @@ async function disablePush(){
   localStorage.removeItem(PUSH_ENDPOINT_KEY);
   state.pushEnabled = false;
   persist();
-  showToast('Notifikasi dimatikan');
-}
-
-async function togglePush(){
-  if (state.pushEnabled){
-    await disablePush();
-  } else {
-    await enablePush();
-  }
+  pushStatus = { state: 'idle', message: '' };
   renderNotifSettings();
+  showToast('Notifikasi dimatikan');
 }
 
 function toggleNotifPref(prefKey){
@@ -3294,32 +3351,54 @@ async function syncFoodsToServer(){
 function renderNotifSettings(){
   const banner = document.getElementById('push-status-banner');
   const icon = document.getElementById('push-status-icon');
-  const title = document.getElementById('push-status-title');
-  const sub = document.getElementById('push-status-sub');
-  const pushToggle = document.getElementById('push-toggle');
+  const titleEl = document.getElementById('push-status-title');
+  const subEl = document.getElementById('push-status-sub');
+  const retryBtn = document.getElementById('push-retry-btn');
+  const disableLink = document.getElementById('push-disable-link');
   const h1Toggle = document.getElementById('h1-toggle');
   const h3Toggle = document.getElementById('h3-toggle');
 
   if (!banner) return;
 
-  if (!pushSupported()){
-    banner.classList.remove('active');
-    icon.textContent = '🚫';
-    title.textContent = 'Tidak didukung di browser ini';
-    sub.textContent = 'Coba buka lewat Chrome/Edge di Android, atau Safari di iOS 16.4+';
-  } else if (state.pushEnabled){
+  banner.classList.remove('active', 'error');
+  retryBtn.style.display = 'none';
+  disableLink.style.display = 'none';
+
+  if (state.pushEnabled && pushStatus.state !== 'error'){
     banner.classList.add('active');
     icon.textContent = '🔔';
-    title.textContent = 'Notifikasi aktif';
-    sub.textContent = 'Kamu akan diingatkan otomatis meski aplikasi tertutup';
+    titleEl.textContent = 'Notifikasi aktif';
+    subEl.textContent = 'Kamu akan diingatkan otomatis meski aplikasi tertutup — termasuk badge di ikon.';
+    disableLink.style.display = 'block';
+  } else if (pushStatus.state === 'checking'){
+    icon.textContent = '⏳';
+    titleEl.textContent = 'Menyiapkan notifikasi…';
+    subEl.textContent = 'Mohon tunggu, izin sedang diminta.';
+  } else if (pushStatus.state === 'unsupported'){
+    banner.classList.add('error');
+    icon.textContent = '🚫';
+    titleEl.textContent = 'Tidak bisa aktif di sini';
+    subEl.textContent = pushStatus.message;
+  } else if (pushStatus.state === 'denied'){
+    banner.classList.add('error');
+    icon.textContent = '🔒';
+    titleEl.textContent = 'Notifikasi diblokir';
+    subEl.textContent = pushStatus.message;
+  } else if (pushStatus.state === 'error'){
+    banner.classList.add('error');
+    icon.textContent = '⚠️';
+    titleEl.textContent = 'Gagal mengaktifkan';
+    subEl.textContent = pushStatus.message;
+    retryBtn.style.display = 'block';
+    retryBtn.textContent = '🔄 Coba Lagi';
   } else {
-    banner.classList.remove('active');
     icon.textContent = '🔕';
-    title.textContent = 'Notifikasi belum aktif';
-    sub.textContent = 'Aktifkan supaya diingatkan otomatis meski aplikasi tertutup';
+    titleEl.textContent = 'Notifikasi belum aktif';
+    subEl.textContent = 'Tap tombol di bawah untuk mengaktifkan.';
+    retryBtn.style.display = 'block';
+    retryBtn.textContent = '🔔 Aktifkan Notifikasi';
   }
 
-  if (pushToggle) pushToggle.classList.toggle('on', state.pushEnabled);
   if (h1Toggle) h1Toggle.classList.toggle('on', state.notifyH1);
   if (h3Toggle) h3Toggle.classList.toggle('on', state.notifyH3);
 }
@@ -3355,14 +3434,22 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .then(() => {
-        // Sinkronkan status toggle dengan subscription asli di browser —
-        // penting kalau user pernah revoke izin lewat pengaturan browser.
+        // Sinkronkan status dengan subscription asli di browser —
+        // penting kalau user pernah revoke izin lewat pengaturan HP.
         return getExistingSubscription();
       })
       .then((sub) => {
         state.pushEnabled = !!sub;
         if (sub) localStorage.setItem(PUSH_ENDPOINT_KEY, sub.endpoint);
         renderNotifSettings();
+
+        // User lama yang sudah punya nama tapi belum pernah ditanya izin
+        // notifikasi (misal setup dari sebelum fitur auto-prompt ada) —
+        // coba tanya sekali secara otomatis juga, tanpa perlu toggle manual.
+        const neverAskedYet = !state.pushPromptShown && Notification.permission !== 'denied';
+        if (hasSession && state.userName && !sub && neverAskedYet){
+          setTimeout(() => enablePush(), 1500);
+        }
       })
       .catch(() => {});
   });

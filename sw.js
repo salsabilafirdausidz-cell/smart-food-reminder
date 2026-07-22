@@ -1,5 +1,5 @@
 // Smart Food Reminder — Service Worker
-const CACHE_NAME = 'sfr-v3'; // bump versi ini setiap kali deploy perubahan penting
+const CACHE_NAME = 'sfr-v5'; // bump versi ini setiap kali deploy perubahan penting
 const ASSETS = [
   './manifest.json',
   './icons/logo.svg',
@@ -89,7 +89,18 @@ self.addEventListener('push', (event) => {
     requireInteraction: false,
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  // Update angka badge di ikon Home Screen, dikirim server bareng notifikasi.
+  // Ini yang membuat badge tetap akurat walau aplikasi sedang tertutup total.
+  const badgeTask = ('setAppBadge' in self.navigator)
+    ? (data.badgeCount > 0
+        ? self.navigator.setAppBadge(data.badgeCount).catch(() => {})
+        : self.navigator.clearAppBadge().catch(() => {}))
+    : Promise.resolve();
+
+  event.waitUntil(Promise.all([
+    self.registration.showNotification(title, options),
+    badgeTask,
+  ]));
 });
 
 // Saat notifikasi di-tap: buka/fokus ke aplikasi
